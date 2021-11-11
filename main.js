@@ -1,12 +1,3 @@
-/*
-
-  Что надо сделать:
-
-  1. По возможности вынести svg из html
-  2. Перенести гугл скрипт в основную таблицу, изменить ссылку в fetch
-
-*/
-
 // Запрос паспорта
 fetch('https://script.google.com/macros/s/AKfycbypwJ7WqqnqCOaGV1hsHm3_mBTDoj_mo8Mw6P9TsyL8scZqFyOJu9ZPVkTzAYys_KLIcw/exec')
 .then(data => data.text())
