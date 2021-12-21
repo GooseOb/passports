@@ -216,7 +216,6 @@ async function closeBook() {
 
 function goPage(page) {
 	if (pageFlip) return;
-	console.time('all');
 	let i, shadowList, getIndex, editCurrLoc;
 	const notBoolean = typeof page !== 'boolean';
 
@@ -265,7 +264,6 @@ function goPage(page) {
 	}, pNum*250);
 	setTimeout(() => pageFlip = false, 250);
 	editCurrLoc();
-	console.timeEnd('all');
 }
 
 function rotateBook() {
