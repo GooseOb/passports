@@ -367,28 +367,3 @@ th {text-align: center}
 .front-content > .p_bottom {border-radius: 0 0 5px 0}
 
 #u_photo, #u_flag-container, #u_flag, #u_print, #rotate-btn, #id-btn > div {border-radius: 5px}
-
-
-
-/* .neon {
-    text-shadow: 
-        0 0 calc(5px * var(--neon-size)) white,
-        0 0 calc(10px * var(--neon-size)) white,
-        0 0 calc(20px * var(--neon-size)) white,
-        0 0 calc(40px * var(--neon-size)) var(--neon-color),
-        0 0 calc(80px * var(--neon-size)) var(--neon-color),
-        0 0 calc(90px * var(--neon-size)) var(--neon-color),
-        0 0 calc(100px * var(--neon-size)) var(--neon-color),
-        0 0 calc(120px * var(--neon-size)) var(--neon-color);
-}
-
-.neon svg {
-    filter:
-        drop-shadow(0 calc(5px * var(--neon-size)) white)
-        drop-shadow(0 0 calc(8px * var(--neon-size)) white)
-        drop-shadow(0 0 calc(15px * var(--neon-size)) white)
-        drop-shadow(0 0 calc(25px * var(--neon-size)) var(--neon-color))
-        drop-shadow(0 0 calc(60px * var(--neon-size)) var(--neon-color))
-        drop-shadow(0 0 calc(75px * var(--neon-size)) var(--neon-color))
-        drop-shadow(0 0 calc(85px * var(--neon-size)) var(--neon-color));
-} */
