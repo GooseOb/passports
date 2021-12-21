@@ -13,11 +13,11 @@ body {
   align-items: center;
   font-family: sans-serif;
   background-color: powderblue;
+  overflow: hidden;
   background: 
     linear-gradient(215deg, #bb0000cc, #ffffff00 70%),
     linear-gradient(130deg, var(--p_color), #ffffff00 70%),
     linear-gradient(335deg, #222222cc, #ffffff00 70%);
-  --borderRadius: 5px;
 }
 
 #book {
@@ -51,15 +51,11 @@ body {
   transform-origin: left;
   transition: transform 0.5s;
 }
-
 .front {
   z-index: 1;
   backface-visibility: hidden;
 }
-
-.back {
-  z-index: 0;
-}
+.back {z-index: 0}
 
 .front-content,
 .back-content {
@@ -75,10 +71,7 @@ body {
 }
 
 /* Эффект перелистывания */
-.flipped .front,
-.flipped .back {
-  transform: rotateY(-180deg);
-}
+.flipped .front, .flipped .back {transform: rotateY(-180deg)}
 
 /* Кнопки */
 .p_btn {
@@ -91,17 +84,11 @@ body {
   color: white;
 }
 
-.p_btn:focus {
-  outline: none;
-}
+.p_btn:focus {outline: none}
 
-.p_btn:hover, #rotate-btn:hover {
-  color: lightsteelblue;
-}
+.p_btn:hover, #rotate-btn:hover {color: lightsteelblue}
 
-#id-btn:hover > div {
-  background-color: lightsteelblue;
-}
+#id-btn:hover > div {background-color: lightsteelblue}
 
 #rotate-btn {
   padding: 3px;
@@ -121,7 +108,7 @@ body {
   background-color: #222222;
   margin-left: 20px;
   border: #222222 solid 3px;
-  border-radius: calc(var(--borderRadius) + 2px);
+  border-radius: 7px;
 }
 
 #id-input {
@@ -141,8 +128,8 @@ body {
 
 #id-input::-webkit-outer-spin-button,
 #id-input::-webkit-inner-spin-button {
--webkit-appearance: none;
-margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 #id-input[type=number] {
@@ -222,18 +209,12 @@ margin: 0;
   align-items: center;
 }
 
-.b {
-  /* Чтобы b-листы ровно встали */
-  margin-left: calc(var(--listWidth) - var(--bookWidth));
-}
+/* Чтобы b-листы ровно встали */
+.b {margin-left: calc(var(--listWidth) - var(--bookWidth))}
 
-#f1, #f3 {
-  white-space: nowrap;
-}
+#f1, #f3 {white-space: nowrap}
 
-#f1 {
-  color: white; 
-}
+#f1 {color: white}
 
 #title {
   position: relative;
@@ -255,9 +236,7 @@ margin: 0;
   object-fit: cover;
 }
 
-#osis {
-  transform: translate(-50%, -45%);
-}
+#osis {transform: translate(-50%, -45%)}
 
 .osis {
   height: 50px;
@@ -279,13 +258,13 @@ margin: 0;
 
 .main-content {
   max-width: var(--listHeight);
-  /* Высота таблицы */ --contentHeight: calc(var(--listWidth) / 1.2); 
-  height: var(--contentHeight);
+  --tableHeight: calc(var(--listWidth) / 1.2); 
+  height: var(--tableHeight);
   padding: 5px;
   display: grid;
   grid-gap: 10px;
   position: absolute;
-  top: calc(var(--contentHeight) / 3);
+  top: calc(var(--tableHeight) / 3);
   left: -60px;
   transform: rotate(-90deg);
   grid-template-columns: repeat(3, 1fr);
@@ -296,17 +275,11 @@ margin: 0;
   align-self: center;
 }
 
-.p_bottom, .u_title {
-  font-weight: bold;
-}
+.p_bottom, .u_title {font-weight: bold}
 
-.u_output, .u_title {
-  font-size: 18px;
-}
+.u_output, .u_title {font-size: 18px}
 
-.u_sex, #u_pdep {
-  text-align: center;
-}
+.u_sex, #u_pdep {text-align: center}
 
 #u_flag, #u_country {
   align-self: center;
@@ -363,9 +336,7 @@ margin: 0;
   transition: opacity .2s;
 }
 
-#copy:hover {
-opacity: 60%;
-}
+#copy:hover {opacity: 60%}
 
 table {
   border-collapse: collapse;
@@ -377,43 +348,25 @@ table, th, td {
   padding: 2px;
 }
 
-table, #b_title {
-  border: none;
-}
+table, #m_title {border: none}
 
-th {
-  text-align: center;
-}
+th {text-align: center}
 
-#b2 > .list {
-  box-shadow: none;
-}
+#b2 > .list {box-shadow: none}
 
-#f4 > .list {
-  box-shadow: 5px 0 5px #00000055;
-}
+#f4 > .list {box-shadow: 5px 0 5px #00000055}
 
 /* Закругления */
 
-.back > .end, .b > .list, #id-input {
-  border-radius: var(--borderRadius) 0px 0px var(--borderRadius);
-}
+.back > .end, .b > .list, #id-input {border-radius: 5px 0px 0px 5px}
 
-.front > .end, .f > .list {
-  border-radius: 0 var(--borderRadius) var(--borderRadius) 0;
-}
+.front > .end, .f > .list {border-radius: 0 5px 5px 0}
 
-.back-content > .p_bottom {
-  border-radius: 0 0 0 var(--borderRadius);
-}
+.back-content > .p_bottom {border-radius: 0 0 0 5px}
 
-.front-content > .p_bottom {
-  border-radius: 0 0 var(--borderRadius) 0;
-}
+.front-content > .p_bottom {border-radius: 0 0 5px 0}
 
-#u_photo, #u_flag-container, #u_flag, #u_print, #rotate-btn, #id-btn > div {
-  border-radius: var(--borderRadius);
-}
+#u_photo, #u_flag-container, #u_flag, #u_print, #rotate-btn, #id-btn > div {border-radius: 5px}
 
 
 
