@@ -226,6 +226,7 @@ body {
   position: relative;
   font-size: 24px;
   bottom: 20px;
+  text-transform: uppercase;
 }
 
 #herb {

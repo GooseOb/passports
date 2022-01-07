@@ -85,8 +85,8 @@ function toHtml(data) {
 	$('#u_name').textContent = data[0];
 	$('#u_surname').textContent = data[1];
 	$('#u_sex').textContent = data[2];
-	if ($('#u_country').textContent != countries[data[3]][0]) {
-		$('#country-name').textContent = countries[data[3]][0].toUpperCase();
+	if ($('#u_country').textContent !== countries[data[3]][0]) {
+		$('#country-name').textContent =
 		$('#u_country').textContent = countries[data[3]][0];
 		editColor(
 			getComputedStyle($('body')).getPropertyValue('--p_color'),
