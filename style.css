@@ -9,15 +9,15 @@ body {
   height: 100vh;
   display: flex;
   justify-content: center;
-  text-align:left;
+  text-align: left;
   align-items: center;
   font-family: sans-serif;
   background-color: powderblue;
   overflow: hidden;
   background: 
-    linear-gradient(215deg, #bb0000cc, #ffffff00 70%),
-    linear-gradient(130deg, var(--p_color), #ffffff00 70%),
-    linear-gradient(335deg, #222222cc, #ffffff00 70%);
+    linear-gradient(215deg, #b00c, #fff0 70%),
+    linear-gradient(130deg, var(--p_color), #fff0 70%),
+    linear-gradient(335deg, #222c, #fff0 70%);
 }
 
 #book {
@@ -66,9 +66,7 @@ body {
   justify-content: center;
 }
 
-.back-content {
-  transform: rotateY(180deg)
-}
+.back-content {transform: rotateY(180deg)}
 
 /* Эффект перелистывания */
 .flipped .front, .flipped .back {transform: rotateY(-180deg)}
@@ -81,18 +79,17 @@ body {
   margin: 10px;
   transition: transform .5s, color .2s, opacity .5s;
   font-size: 50px;
-  color: white;
+  color: #fff;
 }
 
 .p_btn:focus {outline: none}
-
 .p_btn:hover, #rotate-btn:hover {color: lightsteelblue}
 
 #id-btn:hover > div {background-color: lightsteelblue}
 
 #rotate-btn {
   padding: 3px;
-  background-color: #222222;
+  background-color: #222;
   transform: translateX(5%);
   font-size: 30px;
 }
@@ -105,9 +102,9 @@ body {
 #id-form {
   height: 40px;
   display: inline-flex;
-  background-color: #222222;
+  background-color: #222;
   margin-left: 20px;
-  border: #222222 solid 3px;
+  border: #222 solid 3px;
   border-radius: 7px;
 }
 
@@ -115,26 +112,17 @@ body {
   width: 60px;
   background-color: var(--p_color);
   border: none;
-  color: white;
+  color: #fff;
   font-weight: bold;
   text-align: center;
   font-size: 30px;
+  -moz-appearance: textfield;
 }
-
 #id-input::placeholder {
-  color: white;
+  color: #fff;
   opacity: 0.5;
 }
-
-#id-input::-webkit-outer-spin-button,
-#id-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-#id-input[type=number] {
--moz-appearance: textfield;
-}
+#id-input::-webkit-outer-spin-button, #id-input::-webkit-inner-spin-button {-webkit-appearance: none}
 
 #id-btn {
   width: 50px;
@@ -147,7 +135,7 @@ body {
 #id-btn > div {
   transition: background-color .2s;
   width: 5px;
-  background-color: white;
+  background-color: #fff;
 }
 #id-btn > #id-btn1 {
   height: 25px;
@@ -161,7 +149,7 @@ body {
 /* Страницы */
 
 .list {
-  background: linear-gradient(#ffe5ccdd, #ffccccdd), no-repeat center/90% var(--herb_url);
+  background: linear-gradient(#ffe5ccdd, #fccd), no-repeat center/90% var(--herb_url);
   position: absolute;
   top: 50%;
   height: var(--listHeight);
@@ -174,7 +162,7 @@ body {
 .list-num {
   font-size: 15px;
   font-weight: bold;
-  background: #00000055;
+  background: #0005;
   padding: 3px;
   position: absolute;
   bottom: 0;
@@ -195,7 +183,7 @@ body {
   bottom: 0;
   height: 60px;
   width: 100%;
-  background-color: #222222;
+  background-color: #222;
 }
 
 .p_text {
@@ -214,7 +202,7 @@ body {
 
 #f1, #f3 {white-space: nowrap}
 
-#f1 {color: white}
+#f1 {color: #fff}
 
 #title {
   position: relative;
@@ -242,7 +230,7 @@ body {
 .osis {
   height: 50px;
   fill: none;
-  stroke: white;
+  stroke: #fff;
   stroke-width: 16px;
   stroke-linejoin: round;
 }
@@ -274,11 +262,10 @@ body {
 .u_title, .u_output {
   display: inline-grid;
   align-self: center;
+  font-size: 18px
 }
 
 .p_bottom, .u_title {font-weight: bold}
-
-.u_output, .u_title {font-size: 18px}
 
 .u_sex, #u_pdep {text-align: center}
 
@@ -345,17 +332,14 @@ table {
 }
 
 table, th, td {
-  border: 1px solid black;
+  border: 1px solid #000;
   padding: 2px;
 }
-
 table, #m_title {border: none}
-
 th {text-align: center}
 
 #b2 > .list {box-shadow: none}
-
-#f4 > .list {box-shadow: 5px 0 5px #00000055}
+#f4 > .list {box-shadow: 5px 0 5px #0005}
 
 /* Закругления */
 

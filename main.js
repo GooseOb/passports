@@ -27,14 +27,14 @@ const copy = $('#copy');
 
 const countries = [
 	// [название гос-ва, цвет, герб, флаг, стандартное фото]
-	['Республика Гусляндия', '#4488ee', 'gooselande/herb.svg', 'gooselande/flag.svg', 'standard-image/goose.svg'],
+	['Республика Гусляндия', '#332266', 'gooselande/herb.svg', 'gooselande/flag.svg', 'standard-image/goose.svg'],
 	['Республика Неогусляндия', '#55bb33', 'newgooselande/herb.svg', 'newgooselande/flag.svg', 'standard-image/goose.svg'],
 	['Утиное Государство', '#ee8844', 'duck-state/herb.svg', 'duck-state/herb.svg', 'standard-image/duck.png']
 ];
 let currentPassportID = +location.search.split('id=')[1] || false;
 
 // Присвоение положения страницам и цвета обложке
-for (i=0; i < papers.length; i++) {
+for (let i=0; i < papers.length; i++) {
 	papers[i].style.zIndex = papers.length - i
 	if (papers[i].querySelector('.list')) papers[i].style.visibility = 'hidden';
 };
@@ -48,7 +48,7 @@ let pageFlip = false;
 const fronts = document.querySelectorAll('.front');
 for (let i=0; i < fronts.length; i++)
 	fronts[i].addEventListener('click', e => {
-		if (e.target.closest('#copy') != copy) goPage(true);
+		if (e.target.closest('#copy') !== copy) goPage(true);
 		else if (currentPassportID) navigator.clipboard.writeText('https://gooseob.github.io/passports/?id='+currentPassportID);
 	});
 const backs = document.querySelectorAll('.back');
@@ -86,23 +86,24 @@ function toHtml(data) {
 	$('#u_surname').textContent = data[1];
 	$('#u_sex').textContent = data[2];
 	if ($('#u_country').textContent !== countries[data[3]][0]) {
+		const country = countries[data[3]];
 		$('#country-name').textContent =
-		$('#u_country').textContent = countries[data[3]][0];
+		$('#u_country').textContent = country[0];
 		editColor(
 			getComputedStyle($('body')).getPropertyValue('--p_color'),
-			countries[data[3]][1]
+			country[1]
 		);
-		book.style.setProperty('--herb_url', `url('./${countries[data[3]][2]}')`);
-		$('#herb').src = './' + countries[data[3]][2];
-		$('#u_flag').src = './' + countries[data[3]][3];
-	}
-	if (data[3] == 1) {
+		book.style.setProperty('--herb_url', `url('./${country[2]}')`);
+		$('#herb').src = './' + country[2];
+		$('#u_flag').src = './' + country[3];
+	};
+	if (data[3] === 1) {
 		$('#country-name').style.fontSize = '20px';
 	} else $('#country-name').style.fontSize = '24px';
 	const flagCont = $('#u_flag-container');
-	if (data[3] == 2) {
+	if (data[3] === 2) {
 		flagCont.style.textAlign = 'center';
-		flagCont.style.background = '#88ccee';
+		flagCont.style.background = '#8ce';
 		flagCont.style.width = '80%';
 		$('#u_flag').style.float = 'none';
 	} else {
@@ -170,18 +171,12 @@ async function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
 
 	let body = $('body');
 	const interval = setInterval(() => {
-		currRGB = [
-			currRGB[0]-arr[0],
-			currRGB[1]-arr[1],
-			currRGB[2]-arr[2],
-		];
 		currHEX = '#' +
-		Math.round(currRGB[0]).toString(16) +
-		Math.round(currRGB[1]).toString(16) +
-		Math.round(currRGB[2]).toString(16);
-
-		body.style.setProperty('--p_color', currHEX);
-		if (currHEX == finalHEX) clearInterval(interval);
+		Math.round(currRGB[0] -= arr[0]).toString(16) +
+		Math.round(currRGB[1] -= arr[1]).toString(16) +
+		Math.round(currRGB[2] -= arr[2]).toString(16);
+		body.style.cssText = '--p_color:' + currHEX;
+		if (currHEX === finalHEX) clearInterval(interval);
 	}, animDuration/animFrames);
 }
 
@@ -190,7 +185,7 @@ async function openBook() {
 	transformBtns(180);
 	prevBtn.style.visibility = nextBtn.style.visibility = 'visible';
 	prevBtn.style.opacity = nextBtn.style.opacity = 100;
-	for (i=0; i < papers.length; i++) {
+	for (let i=0; i < papers.length; i++) {
 		if (papers[i].querySelector('.list')) papers[i].style.visibility = 'visible';
 	};
 }
@@ -206,8 +201,8 @@ async function closeBook() {
 	};
 	btn.style.opacity = 0;
 	setTimeout(() => {
-		if (btn.style.opacity == 0) btn.style.visibility = 'hidden';
-		for (i=0; i < papers.length; i++) {
+		if (btn.style.opacity === '0') btn.style.visibility = 'hidden';
+		for (let i=0; i < papers.length; i++) {
 			if (papers[i].querySelector('.list')) papers[i].style.visibility = 'hidden';
 		};
 	}, 250);
@@ -225,7 +220,7 @@ function goPage(page) {
 		else if (maxPage < page) page = maxPage+1;
 		const interval = setInterval(() => {
 			const currPage = currLoc*2-3;
-			if (currPage==page || currPage-1==page) clearInterval(interval)
+			if (currPage===page || currPage-1===page) clearInterval(interval)
 			else goPage(currPage < page);
 		}, 270);
 		return;
@@ -255,7 +250,7 @@ function goPage(page) {
 	if (listId) {
 		paper.querySelector(`#${listId} > .list`).style.boxShadow = 'none';
 		if (listId === shadowList) setTimeout(() =>
-			paper.querySelector(`#${listId} > .list`).style.boxShadow = (listId==='b2' ? '-' : '') + '5px 0 5px #00000055'
+			paper.querySelector(`#${listId} > .list`).style.boxShadow = (listId==='b2' ? '-' : '') + '5px 0 5px #0005'
 		, 250);
 	};
 	setTimeout(() => {
