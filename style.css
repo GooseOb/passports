@@ -85,7 +85,7 @@ body {
 .p_btn:focus {outline: none}
 .p_btn:hover, #rotate-btn:hover {color: lightsteelblue}
 
-#id-btn:hover > div {background-color: lightsteelblue}
+#id-btn:hover::before, #id-btn:hover::after {background-color: lightsteelblue}
 
 #rotate-btn {
   padding: 3px;
@@ -125,6 +125,7 @@ body {
 #id-input::-webkit-outer-spin-button, #id-input::-webkit-inner-spin-button {-webkit-appearance: none}
 
 #id-btn {
+  position: relative;
   width: 50px;
   border: none;
   font-size: 30px;
@@ -132,18 +133,23 @@ body {
   text-align: -webkit-center;
 }
 
-#id-btn > div {
-  transition: background-color .2s;
+#id-btn::before, #id-btn::after {
+  position: absolute;
+  left: 0;
+  bottom: 0;
   width: 5px;
+  content: '';
+  transform-origin: left bottom;
   background-color: #fff;
+  transition: background-color .2s;
 }
-#id-btn > #id-btn1 {
-  height: 25px;
-  transform: translate(5px, 5px) rotate(35deg);
-}
-#id-btn > #id-btn2 {
+#id-btn::before {
   height: 16px;
-  transform: translate(-5px, -13px) rotate(-35deg);
+  transform: translate(23px, -5px) rotate(-40deg);
+}
+#id-btn::after {
+  height: 25px;
+  transform: translate(20px, -8px) rotate(40deg);
 }
 
 /* Страницы */
@@ -269,9 +275,7 @@ body {
 
 .u_sex, #u_pdep {text-align: center}
 
-#u_flag, #u_country {
-  align-self: center;
-}
+#u_flag, #u_country {align-self: center}
 
 #u_flag {
   position: relative;
@@ -351,4 +355,4 @@ th {text-align: center}
 
 .front-content > .p_bottom {border-radius: 0 0 5px 0}
 
-#u_photo, #u_flag-container, #u_flag, #u_print, #rotate-btn, #id-btn > div {border-radius: 5px}
+#u_photo, #u_flag-container, #u_flag, #u_print, #rotate-btn, #id-btn::before, #id-btn::after {border-radius: 5px}

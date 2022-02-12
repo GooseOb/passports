@@ -19,6 +19,7 @@ const transformBtns = num => {
 };
 
 // Получение DOM-элементов
+const body = document.body;
 const [prevBtn, rotateBtn, idBtn, nextBtn] = document.querySelectorAll('.p_btn');
 const papers = document.querySelectorAll('.paper');
 const idInput = $('#id-input');
@@ -35,26 +36,27 @@ let currentPassportID = +location.search.split('id=')[1] || false;
 
 // Присвоение положения страницам и цвета обложке
 for (let i=0; i < papers.length; i++) {
-	papers[i].style.zIndex = papers.length - i
+	papers[i].style.zIndex = papers.length - i;
 	if (papers[i].querySelector('.list')) papers[i].style.visibility = 'hidden';
 };
-$('body').style.setProperty('--p_color', '#999999');
+body.style.setProperty('--p_color', '#999999');
 
 const maxLoc = papers.length + 1;
 let currLoc = 1;
 let pageFlip = false;
+let currCountry;
 
 // Триггеры
-const fronts = document.querySelectorAll('.front');
-for (let i=0; i < fronts.length; i++)
-	fronts[i].addEventListener('click', e => {
-		if (e.target.closest('#copy') !== copy) goPage(true);
-		else if (currentPassportID) navigator.clipboard.writeText('https://gooseob.github.io/passports/?id='+currentPassportID);
-	});
-const backs = document.querySelectorAll('.back');
-for (let i=0; i < backs.length; i++) backs[i].addEventListener('click', () => goPage(false));
-prevBtn.addEventListener('click', () => goPage(false));
-nextBtn.addEventListener('click', () => goPage(true));
+book.addEventListener('click', e => {
+	if (e.target.closest('.back')) return goPage(false);
+
+	if (e.target.closest('#copy') !== copy) goPage(true);
+	else if (currentPassportID)
+		navigator.clipboard.writeText('https://gooseob.github.io/passports/?id='+currentPassportID);
+});
+const pageHandler = e => goPage(e.target === nextBtn);
+prevBtn.addEventListener('click', pageHandler);
+nextBtn.addEventListener('click', pageHandler);
 rotateBtn.addEventListener('click', rotateBook);
 idBtn.addEventListener('click', getPassport);
 document.addEventListener('keydown', e => {
@@ -65,9 +67,7 @@ document.addEventListener('keydown', e => {
 	};
 	if (+e.key) idInput.select();
 });
-idInput.addEventListener('keydown', e => {
-	if (e.key == 'Enter') getPassport();
-});
+idInput.addEventListener('keydown', e => e.key === 'Enter' && getPassport());
 idInput.addEventListener('input', function() {
 	this.value = this.value.replace(/^[-0]+/g, '');
 	if (+this.value > this.max) this.value = this.max;
@@ -81,44 +81,50 @@ function getPassport() {
 }
 
 function toHtml(data) {
+	const [name, surname, sex, countryI, nationality, id, dob, doi, photo, isTrue, marrys] = data;
+	const country = countries[countryI];
 	currentPassportID = idInput.value;
-	$('#u_name').textContent = data[0];
-	$('#u_surname').textContent = data[1];
-	$('#u_sex').textContent = data[2];
-	if ($('#u_country').textContent !== countries[data[3]][0]) {
-		const country = countries[data[3]];
-		$('#country-name').textContent =
-		$('#u_country').textContent = country[0];
+	if (currCountry !== country[0]) {
+		$('#country_and_herb').innerHTML = `
+		<h2 id='country-name' style='font-size: ${countryI === 1 ? '20' : '24'}px'>${country[0]}</h2>
+		<img src='./${country[2]}' id='herb'>
+		`;
 		editColor(
-			getComputedStyle($('body')).getPropertyValue('--p_color'),
+			getComputedStyle(body).getPropertyValue('--p_color'),
 			country[1]
 		);
 		book.style.setProperty('--herb_url', `url('./${country[2]}')`);
-		$('#herb').src = './' + country[2];
-		$('#u_flag').src = './' + country[3];
+		currCountry = country[0];
 	};
-	if (data[3] === 1) {
-		$('#country-name').style.fontSize = '20px';
-	} else $('#country-name').style.fontSize = '24px';
-	const flagCont = $('#u_flag-container');
-	if (data[3] === 2) {
-		flagCont.style.textAlign = 'center';
-		flagCont.style.background = '#8ce';
-		flagCont.style.width = '80%';
-		$('#u_flag').style.float = 'none';
-	} else {
-		flagCont.style.textAlign =
-		flagCont.style.background =
-		flagCont.style.width = 'none';
-		$('#u_flag').style.float = 'left';
-	};
-	$('#u_nationality').textContent = data[4]; 
-	$('#u_id').textContent = data[5]; 
-	$('#u_DoB').textContent = data[6];
-	$('#u_DoI').textContent = data[7];
-	$('#u_photo').src = data[8] || './' + countries[data[3]][4];
-	const print = $('#u_print');
-	switch (data[9]) {
+	const f3 = $('#f3');
+	f3.querySelector('.main-content').innerHTML = `
+	<span id='u_flag-container' style='${
+		countryI === 2
+		? 'text-align: center; background: #8ce; width: 80%'
+		: 'text-align: none; background: none; width: none'
+	}'>
+		<img src='./${country[3]}' alt='Флаг' id='u_flag' style='float: ${countryI === 2 ? 'none' : 'left'}'>
+	</span>
+	<h2 id='u_country'>${country[0]}</h2>
+	<img src='${photo || './' + country[4]}' alt='Фото' id='u_photo'>
+	<span class='u_title'>Имя</span>
+	<span class='u_title'>ID VK</span>
+	<span class='u_output' id='u_name'>${name}</span>
+	<span class='u_output' id='u_id'>${id}</span>
+	<span class='u_title'>Фамилия</span>
+	<span class='u_title'>Дата рождения</span>
+	<span class='u_output' id='u_surname'>${surname}</span>
+	<span class='u_output' id='u_DoB'>${dob}</span>
+	<span class='u_title u_sex'>Пол</span>
+	<span class='u_title'>Национальность</span>
+	<span class='u_title'>Дата выдачи</span>
+	<span class='u_output u_sex' id='u_sex'>${sex}</span>
+	<span class='u_output' id='u_nationality'>${nationality}</span>
+	<span class='u_output' id='u_DoI'>${doi}</span>
+	<span class='u_title' id='u_pdep'>Паспортный департамент ОСИГ</span>
+	`;
+	const print = f3.querySelector('#u_print');
+	switch (isTrue) {
 		case 1: if (print.textContent !== 'Аннулировано') break;
 			print.style.visibility = 'visible';
 			print.innerHTML = $('#osis').innerHTML;
@@ -134,27 +140,25 @@ function toHtml(data) {
 		default:
 			print.style.visibility = 'hidden';
 	};
-	const trs = Array.from(document.querySelectorAll('#f4 tr')).slice(2);
-	for (let i=0; trs[i].querySelectorAll('td')[1].textContent; i++) {
-		const marry = trs[i].querySelectorAll('td');
-		marry[0].innerHTML = '&nbsp';
-		marry[1].textContent =
-		marry[2].textContent = '';
+	const f4 = $('#f4');
+	const trs = Array.from(f4.querySelectorAll('tr')).slice(2);
+	for (let i=0; trs[i].querySelectorAll('td')[1].textContent; i++) 
+		trs[i].innerHTML = '<tr><td>&nbsp</td><td></td><td></td></tr>';
+	if (!marrys) return;
+	for (let i=0; i < marrys.length; i++) {
+		const data = marrys[i];
+		trs[i].innerHTML = `
+		<td>${data[0]}</td>
+		<td>${data[1]}</td>
+		<td>${+data[2] ? 'Заключ' : 'Расторж'}</td>
+		`;
 	};
-	if (!data[10]) return;
-	for (let i=0; i < data[10].length; i++) {
-		const dataI = data[10][i];
-		const marry = trs[i].querySelectorAll('td');
-		marry[0].textContent = dataI[0];
-		marry[1].textContent = dataI[1];
-		marry[2].textContent = +dataI[2] ? 'Заключ' : 'Расторж';
-	};
-	const bRow = trs.reverse();
-	let i = 0;
-	while ($('#f4 > .list').offsetHeight-30 < $('table').offsetHeight) bRow[i++].style.display = 'none';
+	const getHeight = el => f4.querySelector(el).offsetHeight;
+	for (let i = trs.length-1; getHeight('.list')-30 < getHeight('table'); i--)
+		trs[i].style.display = 'none';
 }
 
-async function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
+function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
 	const toRGB = str => [
 		parseInt(str[1]+str[2], 16),
 		parseInt(str[3]+str[4], 16),
@@ -169,7 +173,6 @@ async function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
 		(currRGB[2]-finalRGB[2])/animFrames
 	];
 
-	let body = $('body');
 	const interval = setInterval(() => {
 		currHEX = '#' +
 		Math.round(currRGB[0] -= arr[0]).toString(16) +
@@ -180,17 +183,16 @@ async function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
 	}, animDuration/animFrames);
 }
 
-async function openBook() {
+function openBook() {
 	book.style.transform = 'translateX(50%)';
 	transformBtns(180);
 	prevBtn.style.visibility = nextBtn.style.visibility = 'visible';
 	prevBtn.style.opacity = nextBtn.style.opacity = 100;
-	for (let i=0; i < papers.length; i++) {
+	for (let i=0; i < papers.length; i++)
 		if (papers[i].querySelector('.list')) papers[i].style.visibility = 'visible';
-	};
 }
 
-async function closeBook() {
+function closeBook() {
 	let btn;
 	if (currLoc === 2) {
 		book.style.transform = 'translateX(0)';
@@ -202,56 +204,57 @@ async function closeBook() {
 	btn.style.opacity = 0;
 	setTimeout(() => {
 		if (btn.style.opacity === '0') btn.style.visibility = 'hidden';
-		for (let i=0; i < papers.length; i++) {
+		for (let i=0; i < papers.length; i++)
 			if (papers[i].querySelector('.list')) papers[i].style.visibility = 'hidden';
-		};
 	}, 250);
 	transformBtns(0);
 }
 
 function goPage(page) {
 	if (pageFlip) return;
-	let i, shadowList, getIndex, editCurrLoc;
-	const notBoolean = typeof page !== 'boolean';
 
-	if (notBoolean && typeof +page === 'number') {
+	if (typeof page !== 'boolean') {
+		if (typeof +page !== 'number') return;
 		const maxPage = maxLoc*2-5;
 		if (page < 1) page = -1
-		else if (maxPage < page) page = maxPage+1;
+		else if (maxPage < page) page = maxPage + 1;
 		const interval = setInterval(() => {
 			const currPage = currLoc*2-3;
-			if (currPage===page || currPage-1===page) clearInterval(interval)
+			if (page===currPage || page===currPage-1) clearInterval(interval)
 			else goPage(currPage < page);
 		}, 270);
 		return;
 	};
 
-	if (notBoolean) return;
+	let i, shadowList, getIndex, editCurrLoc, handleBook;
 	if (page) {
 		if (currLoc === maxLoc) return;
 		shadowList = 'b2';
 		getIndex = () => currLoc - papers.length;
 		editCurrLoc = () => currLoc++;
+		handleBook = [openBook, closeBook];
 	} else {
 		if (currLoc === 1) return;
 		shadowList = 'f4';
 		getIndex = () => papers.length - i;
 		editCurrLoc = () => currLoc--;
+		handleBook = [closeBook, openBook];
 	};
 
 	pageFlip = true;
 	const pNum = +page;
 	i = currLoc + pNum - 2;
 	const paper = papers[i];
-	if (!i) [closeBook, openBook][pNum]()
-	else if (currLoc === maxLoc-pNum) [openBook, closeBook][pNum]();
+	if (!i) handleBook[0]()
+	else if (currLoc === maxLoc-pNum) handleBook[1]();
 	paper.classList.toggle('flipped');
 	const listId = paper.querySelector('#f4')?.id || paper.querySelector('#b2')?.id;
 	if (listId) {
-		paper.querySelector(`#${listId} > .list`).style.boxShadow = 'none';
-		if (listId === shadowList) setTimeout(() =>
-			paper.querySelector(`#${listId} > .list`).style.boxShadow = (listId==='b2' ? '-' : '') + '5px 0 5px #0005'
-		, 250);
+		const list = paper.querySelector(`#${listId} > .list`);
+		list.style.boxShadow = 'none';
+		if (listId === shadowList) setTimeout(() => {
+			list.style.boxShadow = (listId==='b2' ? '-' : '') + '5px 0 5px #0005';
+		}, 250);
 	};
 	setTimeout(() => {
 		paper.style.zIndex =
@@ -262,11 +265,11 @@ function goPage(page) {
 }
 
 function rotateBook() {
-	if (!/rotate/.test(book.style.transform)) {
+	if (book.style.transform.indexOf('rotate') === -1) {
 		book.style.transform = `rotate(90deg) translateX(${currLoc===maxLoc ? 120 : 20}%)`;
 		transformBtns(80);
 		return;
-	}
+	};
 	book.style.transform = `translateX(${currLoc===1 ? 0 : currLoc===maxLoc ? 100 : 50}%)`;
 	transformBtns(currLoc===1 || currLoc===maxLoc ? 0 : 180);
 }
