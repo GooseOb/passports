@@ -3,6 +3,7 @@ fetch('https://script.google.com/macros/s/AKfycbybniugM8wK3-QLOPQ51AJ6jgHrZOfTJ6
 .then(data => data.text())
 .then(data => {
 	passports = JSON.parse(data).response;
+	idInput.classList.remove('loading');
 	idInput.max = passports.length;
 	if (currentPassportID) {
 		idInput.value = currentPassportID;
@@ -12,7 +13,7 @@ fetch('https://script.google.com/macros/s/AKfycbybniugM8wK3-QLOPQ51AJ6jgHrZOfTJ6
 });
 let passports;
 
-const $ = a => document.querySelector(a);
+const $ = a => body.querySelector(a);
 const transformBtns = num => {
 	prevBtn.style.transform = `translateX(-${num}px)`;
 	nextBtn.style.transform = `translateX(${num}px)`;
@@ -20,8 +21,8 @@ const transformBtns = num => {
 
 // Получение DOM-элементов
 const body = document.body;
-const [prevBtn, rotateBtn, idBtn, nextBtn] = document.querySelectorAll('.p_btn');
-const papers = document.querySelectorAll('.paper');
+const [prevBtn, rotateBtn, idBtn, nextBtn] = body.querySelectorAll('.p_btn');
+const papers = body.querySelectorAll('.paper');
 const idInput = $('#id-input');
 const book = $('#book');
 const copy = $('#copy');

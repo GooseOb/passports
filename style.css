@@ -117,11 +117,15 @@ body {
   text-align: center;
   font-size: 30px;
   -moz-appearance: textfield;
+  transition: background-color .2s;
 }
 #id-input::placeholder {
   color: #fff;
   opacity: 0.5;
+  transition: opacity .2s;
 }
+#id-input.loading {background-color: #222}
+#id-input.loading::placeholder {opacity: 0}
 #id-input::-webkit-outer-spin-button, #id-input::-webkit-inner-spin-button {-webkit-appearance: none}
 
 #id-btn {
