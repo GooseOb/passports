@@ -1,4 +1,4 @@
-// Запрос паспорта
+// Запрос паспортов
 fetch('https://script.google.com/macros/s/AKfycbybniugM8wK3-QLOPQ51AJ6jgHrZOfTJ6JSmXDMoT3T8AA3YSLTsVh1893t62zhQTJlFA/exec')
 .then(data => data.text())
 .then(data => {
@@ -23,15 +23,15 @@ const transformBtns = num => {
 const body = document.body;
 const [prevBtn, rotateBtn, idBtn, nextBtn] = body.querySelectorAll('.p_btn');
 const papers = body.querySelectorAll('.paper');
+const idForm = $('#id-form');
 const idInput = $('#id-input');
 const book = $('#book');
-const copy = $('#copy');
 
 const countries = [
-	// [название гос-ва, цвет, герб, флаг, стандартное фото]
-	['Республика Гусляндия', '#332266', 'gooselande/herb.svg', 'gooselande/flag.svg', 'standard-image/goose.svg'],
-	['Республика Неогусляндия', '#55bb33', 'newgooselande/herb.svg', 'newgooselande/flag.svg', 'standard-image/goose.svg'],
-	['Утиное Государство', '#ee8844', 'duck-state/herb.svg', 'duck-state/herb.svg', 'standard-image/duck.png']
+//	[название гос-ва,			цвет,		код,	стандартное фото]
+	['Республика Гусляндия',	'#332266',	'gsld',	'goose.svg'],
+	['Республика Неогусляндия',	'#55bb33',	'ngld',	'goose.svg'],
+	['Утиное Государство',		'#ee8844',	'duck',	'duck.png' ]
 ];
 let currentPassportID = +location.search.split('id=')[1] || false;
 
@@ -49,9 +49,10 @@ let currCountry;
 
 // Триггеры
 book.addEventListener('click', e => {
-	if (e.target.closest('.back')) return goPage(false);
-
-	if (e.target.closest('#copy') !== copy) goPage(true);
+	if (e.target.closest('.back'))
+		goPage(false);
+	else if (!e.target.closest('#copy'))
+		goPage(true);
 	else if (currentPassportID)
 		navigator.clipboard.writeText('https://gooseob.github.io/passports/?id='+currentPassportID);
 });
@@ -61,7 +62,7 @@ nextBtn.addEventListener('click', pageHandler);
 rotateBtn.addEventListener('click', rotateBook);
 idBtn.addEventListener('click', getPassport);
 document.addEventListener('keydown', e => {
-	if (getSelection().anchorNode === $('#id-form')) return; 
+	if (getSelection().anchorNode === idForm) return; 
 	switch (e.key) {
 		case 'ArrowRight': goPage(true); return;
 		case 'ArrowLeft': goPage(false); return;
@@ -70,8 +71,9 @@ document.addEventListener('keydown', e => {
 });
 idInput.addEventListener('keydown', e => e.key === 'Enter' && getPassport());
 idInput.addEventListener('input', function() {
-	this.value = this.value.replace(/^[-0]+/g, '');
-	if (+this.value > this.max) this.value = this.max;
+	this.value = +this.value > this.max
+		? this.max
+		: this.value.replace(/^[-0]+/g, '');
 });
 
 function getPassport() {
@@ -88,13 +90,13 @@ function toHtml(data) {
 	if (currCountry !== country[0]) {
 		$('#country_and_herb').innerHTML = `
 		<h2 id='country-name' style='font-size: ${countryI === 1 ? '20' : '24'}px'>${country[0]}</h2>
-		<img src='./${country[2]}' id='herb'>
+		<img src='./${country[2]}/herb.svg' id='herb'>
 		`;
 		editColor(
 			getComputedStyle(body).getPropertyValue('--p_color'),
 			country[1]
 		);
-		book.style.setProperty('--herb_url', `url('./${country[2]}')`);
+		book.style.setProperty('--herb_url', `url('./${country[2]}/herb.svg')`);
 		currCountry = country[0];
 	};
 	const f3 = $('#f3');
@@ -104,10 +106,11 @@ function toHtml(data) {
 		? 'text-align: center; background: #8ce; width: 80%'
 		: 'text-align: none; background: none; width: none'
 	}'>
-		<img src='./${country[3]}' alt='Флаг' id='u_flag' style='float: ${countryI === 2 ? 'none' : 'left'}'>
+		<img src='./${country[2]}/${countryI === 2 ? 'herb' : 'flag'}.svg' alt='Флаг' id='u_flag'
+			style='float: ${countryI === 2 ? 'none' : 'left'}'>
 	</span>
 	<h2 id='u_country'>${country[0]}</h2>
-	<img src='${photo || './' + country[4]}' alt='Фото' id='u_photo'>
+	<img src='${photo || './standard-image/' + country[3]}' alt='Фото' id='u_photo'>
 	<span class='u_title'>Имя</span>
 	<span class='u_title'>ID VK</span>
 	<span class='u_output' id='u_name'>${name}</span>
@@ -143,15 +146,15 @@ function toHtml(data) {
 	};
 	const f4 = $('#f4');
 	const trs = Array.from(f4.querySelectorAll('tr')).slice(2);
-	for (let i=0; trs[i].querySelectorAll('td')[1].textContent; i++) 
+	for (let i=0; trs[i].querySelectorAll('td')[1].textContent; i++)
 		trs[i].innerHTML = '<tr><td>&nbsp</td><td></td><td></td></tr>';
 	if (!marrys) return;
 	for (let i=0; i < marrys.length; i++) {
-		const data = marrys[i];
+		const [date, name, type] = marrys[i];
 		trs[i].innerHTML = `
-		<td>${data[0]}</td>
-		<td>${data[1]}</td>
-		<td>${+data[2] ? 'Заключ' : 'Расторж'}</td>
+		<td>${date}</td>
+		<td>${name}</td>
+		<td>${+type ? 'Заключ' : 'Расторж'}</td>
 		`;
 	};
 	const getHeight = el => f4.querySelector(el).offsetHeight;
@@ -215,14 +218,16 @@ function goPage(page) {
 	if (pageFlip) return;
 
 	if (typeof page !== 'boolean') {
-		if (typeof +page !== 'number') return;
+		if (isNaN(page)) return;
 		const maxPage = maxLoc*2-5;
 		if (page < 1) page = -1
-		else if (maxPage < page) page = maxPage + 1;
+		else if (page > maxPage) page = maxPage + 1;
+		let currPage = currLoc*2-3;
+		const next = currPage < page;
 		const interval = setInterval(() => {
-			const currPage = currLoc*2-3;
-			if (page===currPage || page===currPage-1) clearInterval(interval)
-			else goPage(currPage < page);
+			if (page===currPage || page===currPage-1) clearInterval(interval);
+			goPage(next);
+			currPage += next ? 2 : -2;
 		}, 270);
 		return;
 	};
