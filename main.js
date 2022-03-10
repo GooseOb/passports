@@ -11,7 +11,11 @@ fetch('https://script.google.com/macros/s/AKfycbybniugM8wK3-QLOPQ51AJ6jgHrZOfTJ6
 	};
 	console.log('Паспорта получены');
 });
-let passports;
+
+let passports, colorChanging, currCountry;
+let currentPassportID = +location.search.split('id=')[1] || false;
+let pageFlipping = false;
+let currLoc = 1;
 
 const $ = a => body.querySelector(a);
 const transformBtns = num => {
@@ -33,7 +37,6 @@ const countries = [
 	['Республика Неогусляндия',	'#55bb33',	'ngld',	'goose.svg'],
 	['Утиное Государство',		'#ee8844',	'duck',	'duck.png' ]
 ];
-let currentPassportID = +location.search.split('id=')[1] || false;
 
 // Присвоение положения страницам и цвета обложке
 for (let i=0; i < papers.length; i++) {
@@ -43,9 +46,6 @@ for (let i=0; i < papers.length; i++) {
 body.style.setProperty('--p_color', '#999999');
 
 const maxLoc = papers.length + 1;
-let currLoc = 1;
-let pageFlip = false;
-let currCountry;
 
 // Триггеры
 book.addEventListener('click', e => {
@@ -54,7 +54,7 @@ book.addEventListener('click', e => {
 	else if (!e.target.closest('#copy'))
 		goPage(true);
 	else if (currentPassportID)
-		navigator.clipboard.writeText('https://gooseob.github.io/passports/?id='+currentPassportID);
+		navigator.clipboard.writeText(location.href);
 });
 const pageHandler = e => goPage(e.target === nextBtn);
 prevBtn.addEventListener('click', pageHandler);
@@ -80,13 +80,26 @@ function getPassport() {
 	if (
 		idInput.value > 0 &&
 		idInput.value != currentPassportID
-	) toHtml(passports[idInput.value-1]);
+	) {
+		currentPassportID = idInput.value;
+		history.pushState({id: currentPassportID}, null,
+			location.protocol + "//" + location.host + location.pathname + '?id=' + currentPassportID
+		);
+		toHtml(passports[currentPassportID-1]);
+	};
 }
+
+onpopstate = ({state}) => {
+	const id = state?.id || false;
+	if (id) {
+		idInput.value = currentPassportID = id;
+		toHtml(passports[id-1]);
+	} else location.reload();
+};
 
 function toHtml(data) {
 	const [name, surname, sex, countryI, nationality, id, dob, doi, photo, isTrue, marrys] = data;
 	const country = countries[countryI];
-	currentPassportID = idInput.value;
 	if (currCountry !== country[0]) {
 		$('#country_and_herb').innerHTML = `
 		<h2 id='country-name' style='font-size: ${countryI === 1 ? '20' : '24'}px'>${country[0]}</h2>
@@ -163,13 +176,14 @@ function toHtml(data) {
 }
 
 function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
+	clearInterval(colorChanging);
 	const toRGB = str => [
 		parseInt(str[1]+str[2], 16),
 		parseInt(str[3]+str[4], 16),
 		parseInt(str[5]+str[6], 16)
 	];
 	
-	let currRGB = toRGB(currHEX);
+	const currRGB = toRGB(currHEX);
 	const finalRGB = toRGB(finalHEX);
 	const arr = [
 		(currRGB[0]-finalRGB[0])/animFrames,
@@ -177,13 +191,13 @@ function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
 		(currRGB[2]-finalRGB[2])/animFrames
 	];
 
-	const interval = setInterval(() => {
+	colorChanging = setInterval(() => {
 		currHEX = '#' +
 		Math.round(currRGB[0] -= arr[0]).toString(16) +
 		Math.round(currRGB[1] -= arr[1]).toString(16) +
 		Math.round(currRGB[2] -= arr[2]).toString(16);
 		body.style.cssText = '--p_color:' + currHEX;
-		if (currHEX === finalHEX) clearInterval(interval);
+		if (currHEX === finalHEX) clearInterval(colorChanging);
 	}, animDuration/animFrames);
 }
 
@@ -215,7 +229,7 @@ function closeBook() {
 }
 
 function goPage(page) {
-	if (pageFlip) return;
+	if (pageFlipping) return;
 
 	if (typeof page !== 'boolean') {
 		if (isNaN(page)) return;
@@ -247,7 +261,7 @@ function goPage(page) {
 		handleBook = [closeBook, openBook];
 	};
 
-	pageFlip = true;
+	pageFlipping = true;
 	const pNum = +page;
 	i = currLoc + pNum - 2;
 	const paper = papers[i];
@@ -266,7 +280,7 @@ function goPage(page) {
 		paper.style.zIndex =
 		paper.querySelector('.front').style.zIndex = getIndex();
 	}, pNum*250);
-	setTimeout(() => pageFlip = false, 250);
+	setTimeout(() => pageFlipping = false, 250);
 	editCurrLoc();
 }
 

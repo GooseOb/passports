@@ -297,6 +297,7 @@ body {
 #u_photo {
   background-color: var(--p_color);
   grid-row: 2/6;
+  object-fit: cover;
   width: 140px;
   height: 140px;
 }
