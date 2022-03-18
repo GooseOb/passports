@@ -31,8 +31,8 @@ body {
 }
 
 .paper {
-  --listHeight: calc(var(--bookHeight) - 10px * 2);
-  --listWidth: calc(var(--bookWidth) - 10px);
+  --pageHeight: calc(var(--bookHeight) - 10px * 2);
+  --pageWidth: calc(var(--bookWidth) - 10px);
   position: absolute;
   width: 100%;
   height: 100%;
@@ -158,18 +158,18 @@ body {
 
 /* Страницы */
 
-.list {
+.page {
   background: linear-gradient(#ffe5ccdd, #fccd), no-repeat center/90% var(--herb_url);
   position: absolute;
   top: 50%;
-  height: var(--listHeight);
-  width: var(--listWidth);
+  height: var(--pageHeight);
+  width: var(--pageWidth);
   background-color: #ffe5cc;
   transform: translateY(-50%);
   padding: 5px;
 }
 
-.list-num {
+.page-num {
   font-size: 15px;
   font-weight: bold;
   background: #0005;
@@ -178,12 +178,12 @@ body {
   bottom: 0;
 }
 
-.f .list-num {
+.f .page-num {
   border-radius: 4px 0 4px 0;
   right: 0;
 }
 
-.b .list-num {
+.b .page-num {
   border-radius: 0 4px 0 4px;
   left: 0;
 }
@@ -208,11 +208,14 @@ body {
 }
 
 /* Чтобы b-листы ровно встали */
-.b {margin-left: calc(var(--listWidth) - var(--bookWidth))}
+.b {margin-left: calc(var(--pageWidth) - var(--bookWidth))}
 
 #f1, #f3 {white-space: nowrap}
 
-#f1 {color: #fff}
+#f1 {
+  color: #fff;
+  text-align: center;
+}
 
 #title {
   position: relative;
@@ -250,14 +253,14 @@ body {
   stroke-width: 18px;
 }
 
-#f3 > .list {
+#f3 > .page {
   display: flex;
   justify-content: center;
 }
 
 .main-content {
-  max-width: var(--listHeight);
-  --tableHeight: calc(var(--listWidth) / 1.2); 
+  max-width: var(--pageHeight);
+  --tableHeight: calc(var(--pageWidth) / 1.2); 
   height: var(--tableHeight);
   padding: 5px;
   display: grid;
@@ -341,20 +344,22 @@ table {
 }
 
 table, th, td {
+  word-break: break-word;
   border: 1px solid #000;
   padding: 2px;
 }
 table, #m_title {border: none}
 th {text-align: center}
+td:last-child {word-break: normal}
 
-#b2 > .list {box-shadow: none}
-#f4 > .list {box-shadow: 5px 0 5px #0005}
+#b2 > .page {box-shadow: none}
+#f4 > .page {box-shadow: 5px 0 5px #0005}
 
 /* Закругления */
 
-.back > .end, .b > .list, #id-input {border-radius: 5px 0px 0px 5px}
+.back > .end, .b > .page, #id-input {border-radius: 5px 0px 0px 5px}
 
-.front > .end, .f > .list {border-radius: 0 5px 5px 0}
+.front > .end, .f > .page {border-radius: 0 5px 5px 0}
 
 .back-content > .p_bottom {border-radius: 0 0 0 5px}
 

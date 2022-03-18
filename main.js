@@ -1,19 +1,19 @@
 // Запрос паспортов
 fetch('https://script.google.com/macros/s/AKfycbybniugM8wK3-QLOPQ51AJ6jgHrZOfTJ6JSmXDMoT3T8AA3YSLTsVh1893t62zhQTJlFA/exec')
-.then(data => data.text())
-.then(data => {
-	passports = JSON.parse(data).response;
+.then(data => data.json())
+.then(({response}) => {
+	passports = response;
 	idInput.classList.remove('loading');
 	idInput.max = passports.length;
-	if (currentPassportID) {
-		idInput.value = currentPassportID;
-		toHtml(passports[currentPassportID-1]);
+	if (currPassportId) {
+		idInput.value = currPassportId;
+		toHtml(passports[currPassportId-1]);
 	};
 	console.log('Паспорта получены');
 });
 
-let passports, colorChanging, currCountry;
-let currentPassportID = +location.search.split('id=')[1] || false;
+let passports, currCountry, colorChanging;
+let currPassportId = +location.search.split('id=')[1] || false;
 let pageFlipping = false;
 let currLoc = 1;
 
@@ -24,7 +24,7 @@ const transformBtns = num => {
 };
 
 // Получение DOM-элементов
-const body = document.body;
+const {body} = document;
 const [prevBtn, rotateBtn, idBtn, nextBtn] = body.querySelectorAll('.p_btn');
 const papers = body.querySelectorAll('.paper');
 const idForm = $('#id-form');
@@ -32,28 +32,27 @@ const idInput = $('#id-input');
 const book = $('#book');
 
 const countries = [
-//	[название гос-ва,			цвет,		код,	стандартное фото]
-	['Республика Гусляндия',	'#332266',	'gsld',	'goose.svg'],
-	['Республика Неогусляндия',	'#55bb33',	'ngld',	'goose.svg'],
-	['Утиное Государство',		'#ee8844',	'duck',	'duck.png' ]
-];
+	['Республика Гусляндия', '#332266', 'gsld', 'goose.svg'],
+	['Республика Неогусляндия', '#55bb33', 'ngld', 'goose.svg'],
+	['Утиное Государство', '#ee8844', 'duck', 'duck.png']
+].map(a => ({name: a[0], color: a[1], code: a[2], photo: a[3]}));
 
 // Присвоение положения страницам и цвета обложке
-for (let i=0; i < papers.length; i++) {
+for (let i = 0; i < papers.length; i++) {
 	papers[i].style.zIndex = papers.length - i;
-	if (papers[i].querySelector('.list')) papers[i].style.visibility = 'hidden';
+	if (papers[i].querySelector('.page')) papers[i].style.visibility = 'hidden';
 };
 body.style.setProperty('--p_color', '#999999');
 
 const maxLoc = papers.length + 1;
 
 // Триггеры
-book.addEventListener('click', e => {
-	if (e.target.closest('.back'))
+book.addEventListener('click', ({target: el}) => {
+	if (el.closest('.back'))
 		goPage(false);
-	else if (!e.target.closest('#copy'))
+	else if (!el.closest('#copy'))
 		goPage(true);
-	else if (currentPassportID)
+	else if (currPassportId)
 		navigator.clipboard.writeText(location.href);
 });
 const pageHandler = e => goPage(e.target === nextBtn);
@@ -61,69 +60,74 @@ prevBtn.addEventListener('click', pageHandler);
 nextBtn.addEventListener('click', pageHandler);
 rotateBtn.addEventListener('click', rotateBook);
 idBtn.addEventListener('click', getPassport);
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', ({key}) => {
 	if (getSelection().anchorNode === idForm) return; 
-	switch (e.key) {
+	switch (key) {
 		case 'ArrowRight': goPage(true); return;
 		case 'ArrowLeft': goPage(false); return;
 	};
-	if (+e.key) idInput.select();
+	if (+key) idInput.select();
 });
 idInput.addEventListener('keydown', e => e.key === 'Enter' && getPassport());
-idInput.addEventListener('input', function() {
-	this.value = +this.value > this.max
-		? this.max
-		: this.value.replace(/^[-0]+/g, '');
+idInput.addEventListener('input', ({target: el}) => {
+	el.value = +el.value > el.max
+		? el.max
+		: el.value.replace(/^[-0]+/g, '');
 });
 
 function getPassport() {
+	const {value} = idInput;
 	if (
-		idInput.value > 0 &&
-		idInput.value != currentPassportID
+		value > 0 &&
+		value != currPassportId
 	) {
-		currentPassportID = idInput.value;
-		history.pushState({id: currentPassportID}, null,
-			location.protocol + "//" + location.host + location.pathname + '?id=' + currentPassportID
+		currPassportId = value;
+		const {protocol, host, pathname} = location;
+		history.pushState({id: currPassportId}, null,
+			protocol + "//" + host + pathname + '?id=' + currPassportId
 		);
-		toHtml(passports[currentPassportID-1]);
+		toHtml(passports[currPassportId-1]);
 	};
 }
 
 onpopstate = ({state}) => {
 	const id = state?.id || false;
 	if (id) {
-		idInput.value = currentPassportID = id;
+		idInput.value = currPassportId = id;
 		toHtml(passports[id-1]);
 	} else location.reload();
 };
 
 function toHtml(data) {
-	const [name, surname, sex, countryI, nationality, id, dob, doi, photo, isTrue, marrys] = data;
+	const [name, surname, sex, countryI, nationality, id, dob, doi, photo, passportStatus, marrys] = data;
 	const country = countries[countryI];
-	if (currCountry !== country[0]) {
+	const is = {
+		[country.code.toUpperCase()]: true
+	};
+	if (currCountry !== country) {
 		$('#country_and_herb').innerHTML = `
-		<h2 id='country-name' style='font-size: ${countryI === 1 ? '20' : '24'}px'>${country[0]}</h2>
-		<img src='./${country[2]}/herb.svg' id='herb'>
+		<h2 id='country-name' style='font-size: ${is.NGLD ? '20' : '24'}px'>${country.name}</h2>
+		<img src='./${country.code}/herb.svg' id='herb'>
 		`;
 		editColor(
 			getComputedStyle(body).getPropertyValue('--p_color'),
-			country[1]
+			country.color
 		);
-		book.style.setProperty('--herb_url', `url('./${country[2]}/herb.svg')`);
-		currCountry = country[0];
+		book.style.setProperty('--herb_url', `url('./${country.code}/herb.svg')`);
+		currCountry = country;
 	};
 	const f3 = $('#f3');
 	f3.querySelector('.main-content').innerHTML = `
 	<span id='u_flag-container' style='${
-		countryI === 2
+		is.DUCK
 		? 'text-align: center; background: #8ce; width: 80%'
 		: 'text-align: none; background: none; width: none'
 	}'>
-		<img src='./${country[2]}/${countryI === 2 ? 'herb' : 'flag'}.svg' alt='Флаг' id='u_flag'
-			style='float: ${countryI === 2 ? 'none' : 'left'}'>
+		<img src='./${country.code}/${is.DUCK ? 'herb' : 'flag'}.svg' alt='Флаг' id='u_flag'
+			style='float: ${is.DUCK ? 'none' : 'left'}'>
 	</span>
-	<h2 id='u_country'>${country[0]}</h2>
-	<img src='${photo || './standard-image/' + country[3]}' alt='Фото' id='u_photo'>
+	<h2 id='u_country'>${country.name}</h2>
+	<img src='${photo || './standard-image/' + country.photo}' alt='Фото' id='u_photo'>
 	<span class='u_title'>Имя</span>
 	<span class='u_title'>ID VK</span>
 	<span class='u_output' id='u_name'>${name}</span>
@@ -141,28 +145,37 @@ function toHtml(data) {
 	<span class='u_title' id='u_pdep'>Паспортный департамент ОСИГ</span>
 	`;
 	const print = f3.querySelector('#u_print');
-	switch (isTrue) {
+	switch (passportStatus) {
 		case 1: if (print.textContent !== 'Аннулировано') break;
-			print.style.visibility = 'visible';
 			print.innerHTML = $('#osis').innerHTML;
-			print.style.width = '130px';
-			print.style.transform = 'rotate(-90deg) translate(100%, 400%)';
+			Object.assign(print.style, {
+				visibility: 'visible',
+				width: '130px',
+				transform: 'rotate(-90deg) translate(100%, 400%)',
+			});
 			break;
 		case -1:
-			print.style.visibility = 'visible';
 			print.textContent = 'Аннулировано';
-			print.style.width = '90%';
-			print.style.transform = 'rotate(-90deg) translateY(200%)';
+			Object.assign(print.style, {
+				visibility: 'visible',
+				width: '90%',
+				transform: 'rotate(-90deg) translateY(200%)',
+			});
 			break;
 		default:
 			print.style.visibility = 'hidden';
 	};
 	const f4 = $('#f4');
 	const trs = Array.from(f4.querySelectorAll('tr')).slice(2);
-	for (let i=0; trs[i].querySelectorAll('td')[1].textContent; i++)
-		trs[i].innerHTML = '<tr><td>&nbsp</td><td></td><td></td></tr>';
+	const isTextInRow = i => trs[i].querySelectorAll('td')[1].textContent;
+	if (isTextInRow(0)) {
+		for (let i = 0; isTextInRow(i); i++)
+			trs[i].innerHTML = '<tr><td>&nbsp</td><td></td><td></td></tr>';
+		for (let i = 0; i < trs.length; i++)
+			trs[i].style.display &&= '';
+	};
 	if (!marrys) return;
-	for (let i=0; i < marrys.length; i++) {
+	for (let i = 0; i < marrys.length; i++) {
 		const [date, name, type] = marrys[i];
 		trs[i].innerHTML = `
 		<td>${date}</td>
@@ -170,9 +183,19 @@ function toHtml(data) {
 		<td>${+type ? 'Заключ' : 'Расторж'}</td>
 		`;
 	};
-	const getHeight = el => f4.querySelector(el).offsetHeight;
-	for (let i = trs.length-1; getHeight('.list')-30 < getHeight('table'); i--)
-		trs[i].style.display = 'none';
+	// const page = f4.querySelector('.page');
+	// const table = f4.querySelector('table');
+	// const getHeight = el => el.offsetHeight;
+	// for (let i = trs.length-1; getHeight(page)-30 < getHeight(table); i--)
+	// 	trs[i].style.display = 'none';
+	const pageHeigth = f4.querySelector('.page').offsetHeight;
+	const tableHeigth = f4.querySelector('table').offsetHeight;
+	let elNum = Math.ceil((tableHeigth + 60 - pageHeigth) / 30);
+	let i = trs.length-1;
+	while (elNum) {
+		trs[i--].style.display = 'none';
+		elNum--;
+	};
 }
 
 function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
@@ -191,11 +214,12 @@ function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
 		(currRGB[2]-finalRGB[2])/animFrames
 	];
 
+	const {round} = Math;
 	colorChanging = setInterval(() => {
 		currHEX = '#' +
-		Math.round(currRGB[0] -= arr[0]).toString(16) +
-		Math.round(currRGB[1] -= arr[1]).toString(16) +
-		Math.round(currRGB[2] -= arr[2]).toString(16);
+		round(currRGB[0] -= arr[0]).toString(16) +
+		round(currRGB[1] -= arr[1]).toString(16) +
+		round(currRGB[2] -= arr[2]).toString(16);
 		body.style.cssText = '--p_color:' + currHEX;
 		if (currHEX === finalHEX) clearInterval(colorChanging);
 	}, animDuration/animFrames);
@@ -206,8 +230,8 @@ function openBook() {
 	transformBtns(180);
 	prevBtn.style.visibility = nextBtn.style.visibility = 'visible';
 	prevBtn.style.opacity = nextBtn.style.opacity = 100;
-	for (let i=0; i < papers.length; i++)
-		if (papers[i].querySelector('.list')) papers[i].style.visibility = 'visible';
+	for (let i = 0; i < papers.length; i++)
+		if (papers[i].querySelector('.page')) papers[i].style.visibility = 'visible';
 }
 
 function closeBook() {
@@ -222,8 +246,8 @@ function closeBook() {
 	btn.style.opacity = 0;
 	setTimeout(() => {
 		if (btn.style.opacity === '0') btn.style.visibility = 'hidden';
-		for (let i=0; i < papers.length; i++)
-			if (papers[i].querySelector('.list')) papers[i].style.visibility = 'hidden';
+		for (let i = 0; i < papers.length; i++)
+			if (papers[i].querySelector('.page')) papers[i].style.visibility = 'hidden';
 	}, 250);
 	transformBtns(0);
 }
@@ -233,6 +257,7 @@ function goPage(page) {
 
 	if (typeof page !== 'boolean') {
 		if (isNaN(page)) return;
+		page = +page;
 		const maxPage = maxLoc*2-5;
 		if (page < 1) page = -1
 		else if (page > maxPage) page = maxPage + 1;
@@ -246,16 +271,16 @@ function goPage(page) {
 		return;
 	};
 
-	let i, shadowList, getIndex, editCurrLoc, handleBook;
+	let i, shadowPage, getIndex, editCurrLoc, handleBook;
 	if (page) {
 		if (currLoc === maxLoc) return;
-		shadowList = 'b2';
+		shadowPage = 'b2';
 		getIndex = () => currLoc - papers.length;
 		editCurrLoc = () => currLoc++;
 		handleBook = [openBook, closeBook];
 	} else {
 		if (currLoc === 1) return;
-		shadowList = 'f4';
+		shadowPage = 'f4';
 		getIndex = () => papers.length - i;
 		editCurrLoc = () => currLoc--;
 		handleBook = [closeBook, openBook];
@@ -268,12 +293,12 @@ function goPage(page) {
 	if (!i) handleBook[0]()
 	else if (currLoc === maxLoc-pNum) handleBook[1]();
 	paper.classList.toggle('flipped');
-	const listId = paper.querySelector('#f4')?.id || paper.querySelector('#b2')?.id;
-	if (listId) {
-		const list = paper.querySelector(`#${listId} > .list`);
-		list.style.boxShadow = 'none';
-		if (listId === shadowList) setTimeout(() => {
-			list.style.boxShadow = (listId==='b2' ? '-' : '') + '5px 0 5px #0005';
+	const pageId = paper.querySelector('#f4')?.id || paper.querySelector('#b2')?.id;
+	if (pageId) {
+		const page = paper.querySelector(`#${pageId} > .page`);
+		page.style.boxShadow = 'none';
+		if (pageId === shadowPage) setTimeout(() => {
+			page.style.boxShadow = (pageId==='b2' ? '-' : '') + '5px 0 5px #0005';
 		}, 250);
 	};
 	setTimeout(() => {
