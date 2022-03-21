@@ -146,8 +146,9 @@ function toHtml(data) {
 	`;
 	const print = f3.querySelector('#u_print');
 	switch (passportStatus) {
-		case 1: if (print.textContent !== 'Аннулировано') break;
-			print.innerHTML = $('#osis').innerHTML;
+		case 1:
+			if (print.textContent === 'Аннулировано')
+				print.innerHTML = $('#osis').innerHTML;
 			Object.assign(print.style, {
 				visibility: 'visible',
 				width: '130px',
