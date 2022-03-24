@@ -31,11 +31,37 @@ const idForm = $('#id-form');
 const idInput = $('#id-input');
 const book = $('#book');
 
+let mainPage, frontCover;
+{
+	const createGetter = prefix => ({get: (target, name) => target.querySelector(prefix + name)});
+	const u = new Proxy($('#f3'), createGetter('#u_'));
+	mainPage = {
+		name: u.name,
+		flagCont: u['flag-container'],
+		flag: u.flag,
+		country: u.country,
+		photo: u.photo,
+		id: u.id,
+		surname: u.surname,
+		dob: u.DoB,
+		doi: u.DoI,
+		sex: u.sex,
+		nationality: u.nationality,
+		print: u.print,
+	};
+
+	const cah = new Proxy($('#country_and_herb'), createGetter('#'));
+	frontCover = {
+		countryName: cah['country-name'],
+		herb: cah.herb,
+	};
+}
+
 const countries = [
-	['Республика Гусляндия', '#332266', 'gsld', 'goose.svg'],
-	['Республика Неогусляндия', '#55bb33', 'ngld', 'goose.svg'],
-	['Утиное Государство', '#ee8844', 'duck', 'duck.png']
-].map(a => ({name: a[0], color: a[1], code: a[2], photo: a[3]}));
+	['gsld', '#332266', 'Республика Гусляндия', 'goose.svg'],
+	['ngld', '#55bb33', 'Республика Неогусляндия', 'goose.svg'],
+	['duck', '#ee8844', 'Утиное Государство', 'duck.png']
+].map(a => ({code: a[0], color: a[1], name: a[2], photo: a[3]}));
 
 // Присвоение положения страницам и цвета обложке
 for (let i = 0; i < papers.length; i++) {
@@ -60,13 +86,14 @@ prevBtn.addEventListener('click', pageHandler);
 nextBtn.addEventListener('click', pageHandler);
 rotateBtn.addEventListener('click', rotateBook);
 idBtn.addEventListener('click', getPassport);
+const keyEvents = {
+	get ArrowRight() {goPage(true)},
+	get ArrowLeft() {goPage(false)},
+};
 document.addEventListener('keydown', ({key}) => {
-	if (getSelection().anchorNode === idForm) return; 
-	switch (key) {
-		case 'ArrowRight': goPage(true); return;
-		case 'ArrowLeft': goPage(false); return;
-	};
+	if (getSelection().anchorNode === idForm) return;
 	if (+key) idInput.select();
+	else keyEvents[key];
 });
 idInput.addEventListener('keydown', e => e.key === 'Enter' && getPassport());
 idInput.addEventListener('input', ({target: el}) => {
@@ -98,53 +125,43 @@ onpopstate = ({state}) => {
 	} else location.reload();
 };
 
+mainPage.photo.onerror = ({target: el}) => el.src = './standard-image/' + currCountry.photo;
 function toHtml(data) {
-	const [name, surname, sex, countryI, nationality, id, dob, doi, photo, passportStatus, marrys] = data;
+	const [name, surname, sex, countryI, nationality, id, dob, doi, photoUrl, passportStatus, marrys] = data;
 	const country = countries[countryI];
-	const is = {
-		[country.code.toUpperCase()]: true
-	};
 	if (currCountry !== country) {
-		$('#country_and_herb').innerHTML = `
-		<h2 id='country-name' style='font-size: ${is.NGLD ? '20' : '24'}px'>${country.name}</h2>
-		<img src='./${country.code}/herb.svg' id='herb'>
-		`;
+		const is = {
+			[country.code.toUpperCase()]: true
+		};
+		const herbUrl = `./${country.code}/herb.svg`;
+		frontCover.countryName.style.fontSize = (is.NGLD ? '20' : '24') + 'px';
+		frontCover.countryName.textContent = country.name;
+		frontCover.herb.src = herbUrl;
 		editColor(
 			getComputedStyle(body).getPropertyValue('--p_color'),
 			country.color
 		);
-		book.style.setProperty('--herb_url', `url('./${country.code}/herb.svg')`);
+		book.style.setProperty('--herb_url', `url(${herbUrl})`);
 		currCountry = country;
+
+		mainPage.flagCont.style = is.DUCK
+			? 'text-align: center; background: #8ce; width: 80%'
+			: 'text-align: none; background: none; width: none';
+		Object.assign(mainPage.flag, {
+			src: is.DUCK ? herbUrl : `./${country.code}/flag.svg`,
+			style: `float: ${is.DUCK ? 'none' : 'left'}`
+		});
+		mainPage.country.textContent = country.name;
 	};
-	const f3 = $('#f3');
-	f3.querySelector('.main-content').innerHTML = `
-	<span id='u_flag-container' style='${
-		is.DUCK
-		? 'text-align: center; background: #8ce; width: 80%'
-		: 'text-align: none; background: none; width: none'
-	}'>
-		<img src='./${country.code}/${is.DUCK ? 'herb' : 'flag'}.svg' alt='Флаг' id='u_flag'
-			style='float: ${is.DUCK ? 'none' : 'left'}'>
-	</span>
-	<h2 id='u_country'>${country.name}</h2>
-	<img src='${photo || './standard-image/' + country.photo}' alt='Фото' id='u_photo'>
-	<span class='u_title'>Имя</span>
-	<span class='u_title'>ID VK</span>
-	<span class='u_output' id='u_name'>${name}</span>
-	<span class='u_output' id='u_id'>${id}</span>
-	<span class='u_title'>Фамилия</span>
-	<span class='u_title'>Дата рождения</span>
-	<span class='u_output' id='u_surname'>${surname}</span>
-	<span class='u_output' id='u_DoB'>${dob}</span>
-	<span class='u_title u_sex'>Пол</span>
-	<span class='u_title'>Национальность</span>
-	<span class='u_title'>Дата выдачи</span>
-	<span class='u_output u_sex' id='u_sex'>${sex}</span>
-	<span class='u_output' id='u_nationality'>${nationality}</span>
-	<span class='u_output' id='u_DoI'>${doi}</span>
-	<span class='u_title' id='u_pdep'>Паспортный департамент ОСИГ</span>
-	`;
-	const print = f3.querySelector('#u_print');
+	mainPage.photo.src = photoUrl || './standard-image/' + country.photo;
+	mainPage.name.textContent = name;
+	mainPage.id.textContent = id;
+	mainPage.surname.textContent = surname;
+	mainPage.dob.textContent = dob;
+	mainPage.sex.textContent = sex;
+	mainPage.nationality.textContent = nationality;
+	mainPage.doi.textContent = doi;
+	const {print} = mainPage;
 	switch (passportStatus) {
 		case 1:
 			if (print.textContent === 'Аннулировано')
@@ -168,7 +185,7 @@ function toHtml(data) {
 	};
 	const f4 = $('#f4');
 	const trs = Array.from(f4.querySelectorAll('tr')).slice(2);
-	const isTextInRow = i => trs[i].querySelectorAll('td')[1].textContent;
+	const isTextInRow = i => !!trs[i].querySelectorAll('td')[1].textContent;
 	if (isTextInRow(0)) {
 		for (let i = 0; isTextInRow(i); i++)
 			trs[i].innerHTML = '<tr><td>&nbsp</td><td></td><td></td></tr>';
@@ -184,18 +201,13 @@ function toHtml(data) {
 		<td>${+type ? 'Заключ' : 'Расторж'}</td>
 		`;
 	};
-	// const page = f4.querySelector('.page');
-	// const table = f4.querySelector('table');
-	// const getHeight = el => el.offsetHeight;
-	// for (let i = trs.length-1; getHeight(page)-30 < getHeight(table); i--)
-	// 	trs[i].style.display = 'none';
 	const pageHeigth = f4.querySelector('.page').offsetHeight;
 	const tableHeigth = f4.querySelector('table').offsetHeight;
-	let elNum = Math.ceil((tableHeigth + 60 - pageHeigth) / 30);
+	let trsNum = Math.ceil((tableHeigth + 60 - pageHeigth) / 30);
 	let i = trs.length-1;
-	while (elNum) {
+	while (trsNum) {
 		trs[i--].style.display = 'none';
-		elNum--;
+		trsNum--;
 	};
 }
 
@@ -221,7 +233,7 @@ function editColor(currHEX, finalHEX, animDuration=1000, animFrames=60) {
 		round(currRGB[0] -= arr[0]).toString(16) +
 		round(currRGB[1] -= arr[1]).toString(16) +
 		round(currRGB[2] -= arr[2]).toString(16);
-		body.style.cssText = '--p_color:' + currHEX;
+		body.style.setProperty('--p_color', currHEX);
 		if (currHEX === finalHEX) clearInterval(colorChanging);
 	}, animDuration/animFrames);
 }
