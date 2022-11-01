@@ -319,16 +319,19 @@ body
   border: var(--p_color) solid 4px
   opacity: 50%
 
-#copy
+#b2 > .paper
   display: flex
-  max-height: 45px
-  transform: rotate(-90deg) translateY(-190%)
-  opacity: 50%
-  fill: var(--p_color)
-  transition: opacity .2s
+  align-items: center
+  justify-content: center
 
+#qr
+  $bg: #fff3
+  background-color: $bg
+  border: .75rem solid $bg
+  border-radius: .5rem
+  cursor: pointer
   &:hover
-    opacity: 60%
+    opacity: .9
 
 .paper.marriages
   text-align: center

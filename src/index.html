@@ -7,12 +7,12 @@
 	<meta property='og:url' content='https://gooseob.github.io/passports/'>
 	<meta property='og:image' content='og.jpg'>
 	<title>Паспорта</title>
-	<link rel='stylesheet' href='./style.css'>
-	<script defer src='./script.js' defer></script>
+	<styles/>
+	<scripts/>
 </head>
 <body class='loading'>
 
-	<button id='prev-btn' class='p_btn'>
+	<button class='p_btn' id='prev'>
 		&#60;&#60;
 	</button>
 
@@ -54,6 +54,7 @@
 				<div class='back'>
 					<div id='b2' class='page back-content b'>
 						<div class='paper'>
+							<div id='qr'></div>
 							<span class='page-num'>2</span>
 						</div>
 					</div>
@@ -84,9 +85,6 @@
 								<span class='u_output' id='u_DoI'>00.00.0000</span>
 								<span class='u_title' id='u_pdep'>Паспортный департамент ОСИГ</span>
 							</div>
-							<svg id='copy' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'	version='1.1'>
-								<use href='sprite.svg#copy'></use>
-							</svg>
 							<span class='page-num'>3</span>
 						</div>
 						<div id='u_print'>
@@ -163,7 +161,7 @@
 			<button id='id-btn' class='p_btn'></button>
 		</div>
 	</div>
-	<button class='p_btn'>
+	<button class='p_btn' id='next'>
 		&#62;&#62;
 	</button>
 
