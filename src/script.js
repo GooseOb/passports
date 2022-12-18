@@ -7,21 +7,21 @@ fetch('https://script.google.com/macros/s/AKfycbybniugM8wK3-QLOPQ51AJ6jgHrZOfTJ6
 	idInput.max = passports.length;
 	if (currPassportId) {
 		idInput.value = currPassportId;
-		doNotQRColorChange = true;
+		doQRColorTransition = false;
 		toHtml(passports[currPassportId-1]);
 	};
 	console.log('Passports have been loaded');
 });
 
-let passports, currCountry, colorChanging, doNotQRColorChange;
+let passports, currCountry, colorChanging, doQRColorTransition;
 let currPassportId = +location.search.split('id=')[1] || null;
 let currLoc = 1;
 
 const {protocol, host, pathname} = location;
 const BASE_URL = protocol + "//" + host + pathname;
 const FILES_PATH = './files/';
-const getPassportUrl = id => id ? BASE_URL + '?id=' + id : BASE_URL;
 const DEFAULT_COLOR = 'rgb(135, 135, 135)';
+const getPassportUrl = id => BASE_URL + (id ? '?id=' + id : '');
 
 const $ = id => document.getElementById(id);
 const transformBtns = num => {
@@ -61,7 +61,7 @@ const mainPage = proxyDOM({
 	doi: u.DoI,
 	sex: u.sex,
 	nationality: u.nationality,
-	print: u.print,
+	stamp: u.stamp,
 });
 
 const cah = new Proxy($('country_and_herb'), createGetter('#'));
@@ -90,29 +90,15 @@ const qr = Object.assign(new QRCode($('qr'), {
 	correctLevel : QRCode.CorrectLevel.L
 }), {
 	startColorChanging() {
-		if (doNotQRColorChange) {
-			doNotQRColorChange = false;
-			let colorAcc;
-			return {
-				changeQRColor: color => {colorAcc = color},
-				stopQRColorChanging: () => {
-					this._htOption.colorDark = colorAcc;
-					this._oDrawing.draw(this._oQRCode);
-					this.makeImage();
-				}
-			};
-		};
 		this._oDrawing._elCanvas.style.display = 'unset';
 		this._oDrawing._elImage.style.display = 'none';
-		return {
-			changeQRColor: color => {
-				this._htOption.colorDark = color;
-				this._oDrawing.draw(this._oQRCode);
-			},
-			stopQRColorChanging: () => {
-				this.makeImage();
-			}
-		};
+	},
+	changeColor(color) {
+		this._htOption.colorDark = color;
+		this._oDrawing.draw(this._oQRCode);
+	},
+	stopColorChanging() {
+		this.makeImage();
 	}
 });
 
@@ -186,27 +172,27 @@ function toHtml(data) {
 	};
 	mainPage.photo.src = photoUrl || country.standardImage;
 	Object.assign(mainPage, {name, id, surname, dob, sex, nationality, doi});
-	const {print} = mainPage;
+	const {stamp} = mainPage;
 	switch (passportStatus) {
 		case 1:
-			if (print.textContent === 'Аннулировано')
-				print.innerHTML = osisLogo;
-			Object.assign(print.style, {
+			if (stamp.textContent === 'Аннулировано')
+				stamp.innerHTML = osisLogo.innerHTML;
+			Object.assign(stamp.style, {
 				visibility: 'visible',
 				width: '130px',
 				transform: 'rotate(-90deg) translate(100%, 400%)',
 			});
 			break;
 		case -1:
-			print.textContent = 'Аннулировано';
-			Object.assign(print.style, {
+			stamp.textContent = 'Аннулировано';
+			Object.assign(stamp.style, {
 				visibility: 'visible',
 				width: '90%',
 				transform: 'rotate(-90deg) translateY(200%)',
 			});
 			break;
 		default:
-			print.style.visibility = 'hidden';
+			stamp.style.visibility = 'hidden';
 	};
 	const f4 = document.getElementById('marriages');
 	f4.innerHTML = '';
@@ -237,14 +223,19 @@ function changeColor(currRGB, final, animDuration = 1000, animFrames = 60) {
 
 	const finalRGB = `rgb(${final})`;
 	const {round} = Math;
-	const {changeQRColor, stopQRColorChanging} = qr.startColorChanging();
+	qr.startColorChanging();
+	if (!doQRColorTransition) {
+		qr.changeColor(finalRGB);
+		qr.stopColorChanging();
+	};
 	colorChanging = setInterval(() => {
 		for (let i = 0; i < 3; i++) curr[i] -= arr[i];
 		currRGB = `rgb(${curr.map(num => round(num))})`;
 		body.style.setProperty('--p_color', currRGB);
-		changeQRColor(currRGB);
+		if (doQRColorTransition) qr.changeColor(currRGB);
 		if (currRGB === finalRGB) {
-			stopQRColorChanging();
+			if (doQRColorTransition) qr.stopColorChanging();
+			else doQRColorTransition = true;
 			clearInterval(colorChanging);
 		}
 	}, animDuration/animFrames);
