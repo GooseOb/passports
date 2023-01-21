@@ -11,13 +11,14 @@
 	<scripts/>
 </head>
 <body class='loading'>
+	<span id="country-code"></span>
 
-	<button class='p_btn' id='prev'>
+	<button class='p_btn' id='prev' tabindex='1'>
 		&#60;&#60;
 	</button>
 
 	<div id='book-container'>
-		<div id='book' class='book'>
+		<div id='book'>
 
 			<div class='spread'>
 				<div class='front'>
@@ -25,7 +26,7 @@
 						<h1 id='title'>ПАСПОРТ</h1>
 						<div id='country_and_herb'>
 							<h2 id='country-name'>ОБРАЗЕЦ</h2>
-							<img src='' id='herb'>
+							<div id='herb'></div>
 						</div>
 						<div class='p_bottom'>
 							<span class='p_text' id='osis'>
@@ -54,7 +55,7 @@
 				<div class='back'>
 					<div id='b2' class='page back-content b'>
 						<div class='paper'>
-							<div id='qr'></div>
+							<div id='qr' tabindex='0'></div>
 							<span class='page-num'>2</span>
 						</div>
 					</div>
@@ -66,9 +67,9 @@
 					<div id='f3' class='page front-content f'>
 						<div class='paper'>
 							<div class='main-content'>
-								<span id='u_flag-container'><img src='' alt='Флаг' id='u_flag'></span>
+								<span id='u_flag-container'><div id='u_flag'></div></span>
 								<h2 id='u_country'>Название государства</h2>
-								<img src='' alt='Фото' id='u_photo'>
+								<img alt='Фото' id='u_photo'>
 								<span class='u_title'>Имя</span>
 								<span class='u_title'>ID VK</span>
 								<span class='u_output' id='u_name'>Имя</span>
@@ -161,7 +162,7 @@
 			<button id='id-btn' class='p_btn'></button>
 		</div>
 	</div>
-	<button class='p_btn' id='next'>
+	<button class='p_btn' id='next' tabindex='1'>
 		&#62;&#62;
 	</button>
 

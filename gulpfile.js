@@ -73,7 +73,8 @@ const script = () => {
 
 const style = () => {
 	const $ = src(STYLE)
-		.pipe(sass());
+		.pipe(sass())
+		.pipe(replace(/ \[/g, '[')); // fixes gulp
 	if (isProd) $
 		.pipe(minCSS())
 		.pipe(hash(hashParams))

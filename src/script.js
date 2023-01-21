@@ -23,11 +23,17 @@ const FILES_PATH = './files/';
 const DEFAULT_COLOR = 'rgb(135, 135, 135)';
 const getPassportUrl = id => BASE_URL + (id ? '?id=' + id : '');
 
+const {assign} = Object;
+
 const $ = id => document.getElementById(id);
 const transformBtns = num => {
 	prevBtn.style.transform = `translateX(-${num}px)`;
 	nextBtn.style.transform = `translateX(${num}px)`;
 };
+
+const bookTranslateX = value => {
+	book.style.transform = `translateX(${value})`;
+}
 
 // DOM-elements
 const {body} = document;
@@ -39,17 +45,16 @@ const idBtn = $('id-btn');
 const idForm = $('id-form');
 const idInput = $('id-input');
 const book = $('book');
-const osisLogo = $('osis');
+const countryCode = document.getElementById('country-code');
 
-const createGetter = (prefix) => ({
-	get: (target, name) => target.querySelector(prefix + name)
-});
-const proxyDOM = (obj) => new Proxy(obj, {
-	set: (target, name, value) => target[name].textContent = value
-});
+const proxyDOM = (rootId, prefix, getObj) => new Proxy(
+	getObj(new Proxy($(rootId),
+		{get: (target, name) => target.querySelector(prefix + name)}
+	)),
+	{set: (target, name, value) => target[name].textContent = value}
+);
 
-const u = new Proxy($('f3'), createGetter('#u_'));
-const mainPage = proxyDOM({
+const mainPage = proxyDOM('f3', '#u_', u => ({
 	name: u.name,
 	flagCont: u['flag-container'],
 	flag: u.flag,
@@ -61,32 +66,40 @@ const mainPage = proxyDOM({
 	doi: u.DoI,
 	sex: u.sex,
 	nationality: u.nationality,
-	stamp: u.stamp,
-});
+	stamp: assign(u.stamp, {
+		_codes: {
+			'-1': ['null', 'Аннулировано'],
+			0: ['no', ''],
+			1: ['normal', $('osis').innerHTML]
+		},
+		setStatus(code) {
+			const [className, innerHTML] = this._codes[code] || this._codes[0];
+			assign(this, {className, innerHTML});
+		}
+	}),
+}));
 
-const cah = new Proxy($('country_and_herb'), createGetter('#'));
-const frontCover = proxyDOM({
+const frontCover = proxyDOM('country_and_herb', '#', cah => ({
 	countryName: cah['country-name'],
 	herb: cah.herb,
-});
+}));
 
 const countries = [
-	['gsld', '#332266', 'Республика Гусляндия', 'goose.svg'],
-	['ngld', '#55bb33', 'Республика Неогусляндия', 'goose.svg'],
-	['duck', '#ee8844', 'Утиное Государство', 'duck.png']
+	['gsld', '326', 'Республика Гусляндия', 'goose.svg'],
+	['ngld', '5b3', 'Республика Неогусляндия', 'goose.svg'],
+	['duck', 'e84', 'Утиное Государство', 'duck.png']
 ].map(([code, colorHEX, name, stdImg]) => ({
-	code, name, colorHEX,
-	color: colorHEX.slice(1).match(/../g).map(num => parseInt(num, 16)),
-	dir: FILES_PATH + code + '/',
+	code, name,
+	color: colorHEX.match(/./g).map(n => parseInt(n+n, 16)),
 	standardImage: FILES_PATH + 'standard-image/' + stdImg
 }));
 
-const qr = Object.assign(new QRCode($('qr'), {
+const qr = assign(new QRCode($('qr'), {
 	text: getPassportUrl(currPassportId),
 	width: 256,
 	height: 256,
 	colorDark : DEFAULT_COLOR,
-	colorLight : '#00000000',
+	colorLight : '#0000',
 	correctLevel : QRCode.CorrectLevel.L
 }), {
 	startColorChanging() {
@@ -111,9 +124,7 @@ body.style.setProperty('--p_color', DEFAULT_COLOR);
 const [lSpread, plSpread] = spreads.reverse();
 const [fSpread, sSpread] = spreads.reverse();
 fSpread.isCover = fSpread.isFirst =
-lSpread.isCover =
-sSpread.isExtreme = sSpread.isFirst =
-plSpread.isExtreme = true;
+lSpread.isCover = sSpread.isFirst = true;
 
 const maxLoc = spreads.length + 1;
 
@@ -124,11 +135,10 @@ function getPassport() {
 		id !== currPassportId
 	) {
 		currPassportId = id;
-		history.pushState({id: currPassportId}, null,
-			getPassportUrl(currPassportId)
-		);
-		qr.makeCode(getPassportUrl(currPassportId));
-		toHtml(passports[currPassportId-1]);
+		const passportUrl = getPassportUrl(id);
+		history.pushState({id}, null, passportUrl);
+		qr.makeCode(passportUrl);
+		toHtml(passports[id-1]);
 	};
 }
 
@@ -144,56 +154,24 @@ mainPage.photo.onerror = ({target: el}) => el.src = currCountry.standardImage;
 function toHtml(data) {
 	const [name, surname, sex, countryId, nationality, id, dob, doi, photoUrl, passportStatus, marriages] = data;
 	const country = countries[countryId];
+	book.dataset.code = country.code;
 	if (currCountry !== country) {
+		book.className = ''
 		const is = {
 			[country.code.toUpperCase()]: true
 		};
-		const herbUrl = country.dir + '/herb.svg';
-		frontCover.countryName.style.fontSize = (is.NGLD ? '20' : '24') + 'px';
 		frontCover.countryName = country.name;
-		frontCover.herb.src = herbUrl;
 		changeColor(
 			getComputedStyle(body).getPropertyValue('--p_color'),
 			country.color
 		);
-		book.style.setProperty('--herb_url', `url(${herbUrl})`);
 		currCountry = country;
 
-		mainPage.flagCont.style = is.DUCK
-			? 'text-align: center; background: #8ce; width: 80%'
-			: 'text-align: none; background: none; width: none';
-		Object.assign(mainPage.flag, {
-			src: is.DUCK
-				? herbUrl
-				: country.dir + '/flag.svg',
-			style: `float: ${is.DUCK ? 'none' : 'left'}`
-		});
 		mainPage.country = country.name;
 	};
 	mainPage.photo.src = photoUrl || country.standardImage;
-	Object.assign(mainPage, {name, id, surname, dob, sex, nationality, doi});
-	const {stamp} = mainPage;
-	switch (passportStatus) {
-		case 1:
-			if (stamp.textContent === 'Аннулировано')
-				stamp.innerHTML = osisLogo.innerHTML;
-			Object.assign(stamp.style, {
-				visibility: 'visible',
-				width: '130px',
-				transform: 'rotate(-90deg) translate(100%, 400%)',
-			});
-			break;
-		case -1:
-			stamp.textContent = 'Аннулировано';
-			Object.assign(stamp.style, {
-				visibility: 'visible',
-				width: '90%',
-				transform: 'rotate(-90deg) translateY(200%)',
-			});
-			break;
-		default:
-			stamp.style.visibility = 'hidden';
-	};
+	assign(mainPage, {name, id, surname, dob, sex, nationality, doi});
+	mainPage.stamp.setStatus(passportStatus);
 	const f4 = document.getElementById('marriages');
 	f4.innerHTML = '';
 	if (!marriages) return;
@@ -222,27 +200,33 @@ function changeColor(currRGB, final, animDuration = 1000, animFrames = 60) {
 		arr[i] = (curr[i]-final[i])/animFrames;
 
 	const finalRGB = `rgb(${final})`;
-	const {round} = Math;
 	qr.startColorChanging();
-	if (!doQRColorTransition) {
+
+	let onChange, onStop;
+	if (doQRColorTransition) {
+		onChange = () => qr.changeColor(currRGB);
+		onStop = () => qr.stopColorChanging();
+	} else {
 		qr.changeColor(finalRGB);
 		qr.stopColorChanging();
-	};
+		onChange = () => {};
+		onStop = () => doQRColorTransition = true;
+	}
+
 	colorChanging = setInterval(() => {
 		for (let i = 0; i < 3; i++) curr[i] -= arr[i];
-		currRGB = `rgb(${curr.map(num => round(num))})`;
+		currRGB = `rgb(${curr.map(num => Math.round(num))})`;
 		body.style.setProperty('--p_color', currRGB);
-		if (doQRColorTransition) qr.changeColor(currRGB);
+		onChange();
 		if (currRGB === finalRGB) {
-			if (doQRColorTransition) qr.stopColorChanging();
-			else doQRColorTransition = true;
+			onStop();
 			clearInterval(colorChanging);
-		}
+		};
 	}, animDuration/animFrames);
 }
 
 function openBook() {
-	book.style.transform = 'translateX(50%)';
+	bookTranslateX('50%');
 	transformBtns(180);
 	prevBtn.style.visibility = nextBtn.style.visibility = 'visible';
 	prevBtn.style.opacity = nextBtn.style.opacity = 100;
@@ -251,10 +235,10 @@ function openBook() {
 function closeBook() {
 	let btn;
 	if (currLoc === 2) {
-		book.style.transform = 'translateX(0)';
+		bookTranslateX('0');
 		btn = prevBtn;
 	} else {
-		book.style.transform = 'translateX(100%)';
+		bookTranslateX('100%');
 		btn = nextBtn;
 	};
 	btn.style.opacity = 0;
@@ -265,16 +249,12 @@ function closeBook() {
 }
 
 const pageController = {
-	_lastPageFrontId: 'f4',
-	_firstPageBackId: 'b2',
 	_isFlipping: false,
 	_nextParams: {
-		isShadowPage(id) {return id === this._firstPageBackId},
 		getIndex: () => currLoc - spreads.length,
 		handleBook: [openBook, closeBook],
 	},
 	_prevParams: {
-		isShadowPage(id) {return id === this._lastPageFrontId},
 		getIndex: () => spreads.length - i,
 		handleBook: [closeBook, openBook]
 	},
@@ -288,7 +268,7 @@ const pageController = {
 		if (this._flip(false, this._prevParams))
 			currLoc--;
 	},
-	_flip(isNext, {handleBook, isShadowPage, getIndex}) {
+	_flip(isNext, {handleBook, getIndex}) {
 		if (this._isFlipping) return false;
 		this._isFlipping = true;
 
@@ -299,14 +279,6 @@ const pageController = {
 		if (isCover) {
 			if (isFirst) handleBook[0]();
 			else handleBook[1]();
-		} else if (spread.isExtreme) {
-			const id = isFirst ? this._firstPageBackId : this._lastPageFrontId;
-			const paper = document.getElementById(id).querySelector('.paper');
-			paper.style.boxShadow = 'none';
-			if (isShadowPage(id)) setTimeout(() => {
-				const sign = isFirst ? '-' : '';
-				paper.style.boxShadow = sign + '5px 0 5px #0005';
-			}, 250);
 		};
 		setTimeout(() => {
 			spread.style.zIndex =
@@ -323,13 +295,14 @@ const pageController = {
 function rotateBook() {
 	const isMaxLoc = currLoc === maxLoc;
 	const isMinLoc = currLoc === 1;
-	if (book.style.transform.indexOf('rotate') === -1) {
-		book.style.transform = `rotate(90deg) translateX(${isMaxLoc ? 120 : 20}%)`;
-		transformBtns(80);
+	const isRotated = ~book.style.transform.indexOf('rotate');
+	if (isRotated) {
+		bookTranslateX((isMinLoc ? 0 : isMaxLoc ? 100 : 50) + '%');
+		transformBtns(isMinLoc || isMaxLoc ? 0 : 180);
 		return;
 	};
-	book.style.transform = `translateX(${isMinLoc ? 0 : isMaxLoc ? 100 : 50}%)`;
-	transformBtns(isMinLoc || isMaxLoc ? 0 : 180);
+	book.style.transform = `rotate(90deg) translateX(${isMaxLoc ? 120 : 20}%)`;
+	transformBtns(80);
 }
 
 // Listeners

@@ -4,6 +4,9 @@ $bookWidth: 360px
 $bookHeight: 500px
 $paperHeight: $bookHeight - 10px * 2
 $paperWidth: $bookWidth - 10px
+$border_r: 5px
+$pageflip_duration: 1s
+$p_color: var(--p_color)
 
 *
   margin: 0
@@ -20,7 +23,7 @@ body
   font-family: sans-serif
   background-color: powderblue
   overflow: hidden
-  background: linear-gradient(215deg, #b00c, #fff0 70%), linear-gradient(130deg, var(--p_color), #fff0 70%), linear-gradient(335deg, #222c, #fff0 70%)
+  background: linear-gradient(215deg, #b00c, #fff0 70%), linear-gradient(130deg, $p_color, #fff0 70%), linear-gradient(335deg, #222c, #fff0 70%)
 
 #book
   width: $bookWidth
@@ -28,22 +31,52 @@ body
   position: relative
   transition: transform 0.5s
 
-.spread
+@function country($code)
+  @return #book["data-code=#{$code}"]
+
+@mixin standard-symbols($code)
+  --herb_url: url('files/#{$code}/herb.svg')
+  --flag_url: url('files/#{$code}/flag.svg')
+
+@mixin flag-w($w)
+  #u_flag
+    width: $w
+
+#{country(gsld)}
+  @include standard-symbols(gsld)
+  @include flag-w(100px)
+
+#{country(ngld)}
+  @include standard-symbols(ngld)
+  @include flag-w(75px)
+  #country-name
+    font-size: 20px
+
+#{country(duck)}
+  --herb_url: url('files/duck/herb.svg')
+  --flag_url: var(--herb_url)
+  @include flag-w(100%)
+  #u_flag-container
+    background: #8ce
+    width: 80%
+
+#u_flag
+  background: var(--flag_url) no-repeat
+  background-position-x: center
+
+.spread, .front, .back
   position: absolute
   width: 100%
   height: 100%
   top: 0
   left: 0
+
+.spread
   perspective: 1500px
 
 .front, .back
-  position: absolute
-  width: 100%
-  height: 100%
-  top: 0
-  left: 0
   transform-origin: left
-  transition: transform 0.5s
+  transition: transform $pageflip_duration
 
 .front
   z-index: 1
@@ -62,7 +95,7 @@ body
 .back-content
   transform: rotateY(180deg)
 
-/* Эффект перелистывания
+/* Перелистывание
 
 .flipped
   .front, .back
@@ -82,21 +115,16 @@ body
   &:focus
     outline: none
 
-  &:hover
+  &:hover, &:focus
     color: lightsteelblue
-
-#rotate-btn:hover
-  color: lightsteelblue
-
-#id-btn:hover
-  &::before, &::after
-    background-color: lightsteelblue
 
 #rotate-btn
   padding: 3px
   background-color: #222
   transform: translateX(5%)
   font-size: 30px
+  &:hover, &:focus
+    color: lightsteelblue
 
 #prev
   opacity: 0
@@ -116,7 +144,7 @@ body
 
 #id-input
   width: 60px
-  background-color: var(--p_color)
+  background-color: $p_color
   border: none
   color: #fff
   font-weight: bold
@@ -143,7 +171,6 @@ body
   font-size: 30px
   margin: 0
   text-align: -webkit-center
-
   &::before, &::after
     position: absolute
     left: 0
@@ -153,14 +180,16 @@ body
     transform-origin: left bottom
     background-color: #fff
     transition: background-color .2s
-
+    border-radius: $border_r
   &::before
     height: 16px
     transform: translate(23px, -5px) rotate(-40deg)
-
   &::after
     height: 25px
     transform: translate(20px, -8px) rotate(40deg)
+  &:hover, &:focus
+    &::before, &::after
+      background-color: lightsteelblue
 
 /* Страницы
 
@@ -203,7 +232,7 @@ body
   left: 50%
 
 .end
-  background-color: var(--p_color)
+  background-color: $p_color
   align-items: center
 
 /* Чтобы b-листы ровно встали
@@ -223,6 +252,11 @@ body
   font-size: 40px
   bottom: 25px
 
+#country_and_herb
+  display: flex
+  flex-direction: column
+  align-items: center
+
 #country-name
   position: relative
   font-size: 24px
@@ -233,22 +267,9 @@ body
   position: relative
   bottom: 10px
   width: 300px
-  max-height: 300px
+  height: 300px
+  background: var(--herb_url) no-repeat center
   object-fit: cover
-
-#osis
-  transform: translate(-50%, -45%)
-
-.osis
-  height: 50px
-  fill: none
-  stroke: #fff
-  stroke-width: 16px
-  stroke-linejoin: round
-
-#u_stamp > .osis
-  stroke: var(--p_color)
-  stroke-width: 18px
 
 #f3 > .paper
   display: flex
@@ -293,7 +314,7 @@ body
   font-size: 22px
 
 #u_photo
-  background-color: var(--p_color)
+  background-color: $p_color
   grid-row: 2/6
   object-fit: cover
   width: 140px
@@ -305,9 +326,14 @@ body
   font-size: 16px
   padding-top: 10px
 
+@mixin visible-stamp($w, $translate)
+  visibility: visible
+  width: $w
+  transform: rotate(-90deg) $translate
+
 #u_stamp
   display: flex
-  color: var(--p_color)
+  color: $p_color
   font-size: 37px
   font-weight: bold
   padding: 8px
@@ -316,13 +342,69 @@ body
   transform: rotate(-90deg) translate(100%, 400%)
   justify-content: center
   align-items: center
-  border: var(--p_color) solid 4px
+  border: $p_color solid 4px
   opacity: 50%
+  & > .osis
+    stroke: $p_color
+    stroke-width: 18px
+  &.no
+    visibility: hidden
+  &.normal
+    @include visible-stamp(130px, translate(100%, 400%))
+  &.null
+    @include visible-stamp(90%, translateY(200%))
+
+#osis
+  transform: translate(-50%, -45%)
+
+.osis
+  height: 50px
+  fill: none
+  stroke: #fff
+  stroke-width: 16px
+  stroke-linejoin: round
+
+$page_shadow: 5px 0 5px #0005
+
+@mixin page_animation($anim)
+  animation-name: $anim
+  animation-duration: $pageflip_duration
 
 #b2 > .paper
   display: flex
   align-items: center
   justify-content: center
+  @include page_animation(hide_shadow_first)
+  box-shadow: none
+
+.flipped #f4 > .paper
+  @include page_animation(hide_shadow_last)
+  box-shadow: none
+
+#f4 > .paper
+  @include page_animation(show_shadow_last)
+  box-shadow: $page_shadow
+
+.flipped #b2 > .paper
+  @include page_animation(show_shadow_first)
+  box-shadow: -$page_shadow
+
+@mixin create_shadow_animations($name, $shadow)
+  @keyframes show_shadow_#{$name}
+    0%
+      box-shadow: none
+    80%
+      box-shadow: none
+    100%
+      box-shadow: $shadow
+  @keyframes hide_shadow_#{$name}
+    0%
+      box-shadow: $shadow
+    20%
+      box-shadow: none
+
+@include create_shadow_animations(first, -$page_shadow)
+@include create_shadow_animations(last, $page_shadow)
 
 #qr
   $bg: #fff3
@@ -330,12 +412,11 @@ body
   border: .75rem solid $bg
   border-radius: .5rem
   cursor: pointer
-  &:hover
+  &:hover, &:focus
     opacity: .9
 
 .paper.marriages
   text-align: center
-
   .title
     font-size: 1.5rem
     font-weight: bold
@@ -350,10 +431,9 @@ body
 
   .data
     position: relative
-
     .date
       position: absolute
-      right: 0%
+      right: 0
 
   .divorce
     margin-top: .5rem
@@ -362,29 +442,19 @@ body
     padding: .2rem
     border-radius: .5rem
 
-#b2 > .paper
-  box-shadow: none
-
-#f4 > .paper
-  box-shadow: 5px 0 5px #0005
-
 /* Закругления
 
 .back > .end, .b > .paper, #id-input
-  border-radius: 5px 0px 0px 5px
+  border-radius: $border_r 0 0 $border_r
 
 .front > .end, .f > .paper
-  border-radius: 0 5px 5px 0
+  border-radius: 0 $border_r $border_r 0
 
 .back-content > .p_bottom
-  border-radius: 0 0 0 5px
+  border-radius: 0 0 0 $border_r
 
 .front-content > .p_bottom
-  border-radius: 0 0 5px 0
+  border-radius: 0 0 $border_r 0
 
 #u_photo, #u_flag-container, #u_flag, #u_stamp, #rotate-btn
-  border-radius: 5px
-
-#id-btn
-  &::before, &::after
-    border-radius: 5px
+  border-radius: $border_r
