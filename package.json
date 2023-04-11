@@ -4,6 +4,7 @@
   "license": "MIT",
   "private": true,
   "type": "module",
+  "homepage": "https://gooseob.github.io/passports",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GooseOb/passports.git"
