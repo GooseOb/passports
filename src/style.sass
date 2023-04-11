@@ -22,7 +22,6 @@ body
   text-align: left
   align-items: center
   font-family: sans-serif
-  background-color: powderblue
   overflow: hidden
   background: linear-gradient(215deg, #b00c, #fff0 70%), linear-gradient(130deg, $p_color, #fff0 70%), linear-gradient(335deg, #222c, #fff0 70%)
 
@@ -32,31 +31,24 @@ body
   position: relative
   transition: transform 0.5s
 
-@function country($code)
-  @return #{"#book["}"data-code=#{$code}"#{"]"}
+@mixin country($code, $flag-w, $default-symbols: true)
+  #book[data-code=#{$code}]
+    #u_flag
+      width: $flag-w
+    @if $default-symbols
+      --herb_url: url('/#{$code}/herb.svg')
+      --flag_url: url('/#{$code}/flag.svg')
+    @content
 
-@mixin state-symbols($code)
-  --herb_url: url('/#{$code}/herb.svg')
-  --flag_url: url('/#{$code}/flag.svg')
+@include country(gsld, 100px)
 
-@mixin flag-w($w)
-  #u_flag
-    width: $w
-
-#{country(gsld)}
-  @include state-symbols(gsld)
-  @include flag-w(100px)
-
-#{country(ngld)}
-  @include state-symbols(ngld)
-  @include flag-w(75px)
+@include country(ngld, 75px)
   #country-name
     font-size: 20px
 
-#{country(duck)}
+@include country(duck, 100%, false)
   --herb_url: url('/duck/herb.svg')
   --flag_url: var(--herb_url)
-  @include flag-w(100%)
   #u_flag-container
     background: #8ce
     width: 80%

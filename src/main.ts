@@ -10,7 +10,7 @@ passportsPromise.then(({response}: Response) => {
         idInput.value = String(currPassportId);
         toHtml(passports[currPassportId-1]);
     }
-    console.log('Passports have loaded');
+    console.log('Passports have been loaded');
 });
 
 type Marriage = [
@@ -31,7 +31,7 @@ type Passport = [
     photoUrl: string,
     passportStatus: PassportStatusCode,
     marriages: Marriage[]
-]
+];
 
 type Response = {response: Passport[]};
 
@@ -41,7 +41,8 @@ let currLoc = 1;
 
 const {protocol, host, pathname} = location;
 const BASE_URL = protocol + "//" + host + pathname;
-const getPassportUrl = (id: string | number | null) => BASE_URL + (id ? '?id=' + id : '');
+const getPassportUrl = (id: string | number | null): string =>
+    BASE_URL + (id ? '?id=' + id : '');
 
 const {assign} = Object;
 
@@ -55,14 +56,14 @@ const bookTranslateX = (value: string) => {
     book.style.transform = `translateX(${value})`;
 }
 
-interface Spread extends HTMLDivElement {
+interface SpreadElement extends HTMLDivElement {
     isCover: boolean,
     isFirst: boolean
 }
 
 // DOM-elements
-const {body} = document;
-const spreads = Array.from(body.querySelectorAll('.spread')) as Spread[];
+const body = document.body as HTMLBodyElement;
+const spreads = Array.from(body.querySelectorAll('.spread')) as SpreadElement[];
 const rotateBtn = $<HTMLButtonElement>('rotate-btn');
 const prevBtn = $<HTMLButtonElement>('prev');
 const nextBtn = $<HTMLButtonElement>('next');
@@ -70,20 +71,20 @@ const idBtn = $<HTMLButtonElement>('id-btn');
 const idForm = $<HTMLFormElement>('id-form');
 const idInput = $<HTMLInputElement>('id-input');
 const book = $<HTMLDivElement>('book');
+const pageF4 = $<HTMLDivElement>('marriages');
 
 const proxyDOM = (rootId: string, prefix: string, getObj: (arg: any)=>any) => new Proxy(
-    getObj(new Proxy($(rootId),
-        {get: (target, name: string) => target.querySelector(prefix + name)}
-    )),
+    getObj(new Proxy($(rootId), {
+        get: (target, name: string) => target.querySelector(prefix + name)
+    })),
     {set: (target, name, value) => target[name].textContent = value}
 );
 
 type PassportStatusCode = '-1' | '0' | '1';
-type StampStatuses = Record<PassportStatusCode, [string, string]>;
+type StampStatuses = Record<PassportStatusCode, [className: string, innerHTML: string]>;
 const stampStatuses: StampStatuses = {
     '-1': ['null', 'Аннулировано'],
     '0' : ['no', ''],
-    // '1' : ['normal', $<HTMLSpanElement>('osis').innerHTML]
     '1' : ['normal', `<svg class='osis'><use href='${sprite}#osis'></use></svg>`]
 };
 
@@ -164,10 +165,10 @@ qr.render();
 for (let i = 0; i < spreads.length; i++)
     spreads[i].style.zIndex = String(spreads.length - i);
 
-const [lSpread/*, plSpread*/] = spreads.reverse();
-const [fSpread, sSpread] = spreads.reverse();
-fSpread.isCover = fSpread.isFirst =
-    lSpread.isCover = sSpread.isFirst = true;
+const [lastSpread/*, preLastSpread*/] = spreads.reverse();
+const [firstSpread, secondSpread] = spreads.reverse();
+firstSpread.isCover = firstSpread.isFirst =
+    lastSpread.isCover = secondSpread.isFirst = true;
 
 const maxLoc = spreads.length + 1;
 
@@ -216,15 +217,14 @@ function toHtml(data: Passport) {
     mainPage.photo.src = photoUrl || country.standardImage;
     assign(mainPage, {name, id, surname, dob, sex, nationality, doi});
     mainPage.stamp.setStatus(passportStatus);
-    const f4 = $<HTMLDivElement>('marriages');
-    f4.innerHTML = '';
+    pageF4.innerHTML = '';
     if (!marriages) return;
     for (let i = 0; i < marriages.length; i++) {
         const [date, name, divorceDate = false] = marriages[i];
         const divorce = divorceDate
             ? `<div class='divorce'> Расторгнут ${divorceDate} </div>`
             : '';
-        f4.innerHTML += `
+        pageF4.innerHTML += `
 		<div class='card'>
 			<div class='data'>
 				<span>${name}</span>
@@ -348,7 +348,7 @@ function rotateBook() {
         bookTranslateX((isMinLoc ? 0 : isMaxLoc ? 100 : 50) + '%');
         transformBtns(isMinLoc || isMaxLoc ? 0 : 180);
         return;
-    };
+    }
     book.style.transform = `rotate(90deg) translateX(${isMaxLoc ? 120 : 20}%)`;
     transformBtns(80);
 }
