@@ -41,8 +41,7 @@ let currLoc = 1;
 
 const {protocol, host, pathname} = location;
 const BASE_URL = protocol + "//" + host + pathname;
-const FILES_PATH = './files/';
-const getPassportUrl = (id: string | number) => BASE_URL + (id ? '?id=' + id : '');
+const getPassportUrl = (id: string | number | null) => BASE_URL + (id ? '?id=' + id : '');
 
 const {assign} = Object;
 
@@ -130,7 +129,7 @@ const countries: Country[] = [
 ].map(([code, colorHEX, name, stdImg]) => ({
     code, name,
     color: colorHEX.match(/./g)!.map(n => parseInt(n+n, 16)) as RGB,
-    standardImage: FILES_PATH + 'standard-image/' + stdImg
+    standardImage:  './standard-image/' + stdImg
 }));
 
 const rgbToHex = (rgb: RGB): string =>
@@ -147,7 +146,7 @@ const qr = {
         this._options.color!.dark = color;
         this.render();
     },
-    _url: BASE_URL,
+    _url: getPassportUrl(currPassportId),
     _options: {
         color: {
             dark: '#888',
@@ -159,6 +158,7 @@ const qr = {
     } as QRCodeRenderersOptions,
     _canvas: $<HTMLCanvasElement>('qr-canvas')
 }
+qr.render();
 
 // Set page positions & cover color
 for (let i = 0; i < spreads.length; i++)

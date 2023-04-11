@@ -12,6 +12,7 @@ for (const key in tsPaths)
     alias[key as Alias] = path.resolve(tsPaths[key as Alias][0]);
 
 const cfg: UserConfig = {
+    base: '/passports/',
     build: {outDir: 'build'},
     resolve: {alias},
     plugins: [ViteImageOptimizer({
