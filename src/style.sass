@@ -8,6 +8,8 @@ $border_r: 5px
 $pageflip_duration: 1s
 $p_color: var(--p_color)
 
+$static_dir: '/src/files/'
+
 *
   margin: 0
   padding: 0
@@ -15,6 +17,7 @@ $p_color: var(--p_color)
   outline: none
 
 body
+  --p_color: rgb(136, 136, 136)
   height: 100vh
   display: flex
   justify-content: center
@@ -32,11 +35,11 @@ body
   transition: transform 0.5s
 
 @function country($code)
-  @return #book["data-code=#{$code}"]
+  @return #{"#book["}"data-code=#{$code}"#{"]"}
 
 @mixin standard-symbols($code)
-  --herb_url: url('files/#{$code}/herb.svg')
-  --flag_url: url('files/#{$code}/flag.svg')
+  --herb_url: url('/files/#{$code}/herb.svg')
+  --flag_url: url('/files/#{$code}/flag.svg')
 
 @mixin flag-w($w)
   #u_flag
@@ -53,7 +56,7 @@ body
     font-size: 20px
 
 #{country(duck)}
-  --herb_url: url('files/duck/herb.svg')
+  --herb_url: url('/files/duck/herb.svg')
   --flag_url: var(--herb_url)
   @include flag-w(100%)
   #u_flag-container
