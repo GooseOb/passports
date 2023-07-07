@@ -23,6 +23,6 @@ const cfg: UserConfig = {
 
 export default defineConfig(({ command }) => {
     const isDev = command === 'serve';
-    if (isDev) alias['@getPassports'] = path.resolve('src', 'get-passports', 'static.ts');
+    if (isDev) alias['@passports'] = path.resolve('src', 'get-passports', 'dev-static.ts');
     return cfg;
 });

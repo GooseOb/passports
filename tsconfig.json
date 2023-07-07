@@ -15,7 +15,7 @@
     "noImplicitReturns": true,
     "skipLibCheck": true,
     "paths": {
-      "@getPassports": ["./src/get-passports/fetch.ts"]
+      "@passports": ["./src/get-passports/fetch.ts"]
     }
   },
   "include": ["src"]

@@ -1,5 +1,5 @@
 import QRCode, {QRCodeRenderersOptions} from 'qrcode'
-import passportsPromise from '@getPassports'
+import passportsPromise from '@passports'
 import sprite from './sprite.svg'
 
 passportsPromise.then(({response}: Response) => {
@@ -383,5 +383,3 @@ idInput.addEventListener('input', e => {
         ? el.max
         : el.value.replace(/^[-0]+/g, '');
 });
-
-export {};
