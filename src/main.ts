@@ -1,39 +1,18 @@
 import QRCode, {QRCodeRenderersOptions} from 'qrcode'
 import passportsPromise from '@passports'
 import sprite from './sprite.svg'
+import {Passport, PassportStatusCode} from './types';
 
-passportsPromise.then(({response}: Response) => {
+passportsPromise.then(({response}) => {
     passports = response;
     body.classList.remove('loading');
-    idInput.max = String(passports.length);
+    idInput.max = passports.length.toString();
     if (currPassportId) {
-        idInput.value = String(currPassportId);
+        idInput.value = currPassportId.toString();
         toHtml(passports[currPassportId-1]);
     }
     console.log('Passports have been loaded');
 });
-
-type Marriage = [
-    date: string,
-    name: string,
-    divorceDate?: string
-];
-
-type Passport = [
-    name: string,
-    surname: string,
-    sex: string,
-    countryId: number,
-    nationality: string,
-    id: string,
-    dob: string,
-    doi: string,
-    photoUrl: string,
-    passportStatus: PassportStatusCode,
-    marriages: Marriage[]
-];
-
-type Response = {response: Passport[]};
 
 let passports: Passport[], currCountry: Country, colorChanging: number;
 let currPassportId = +location.search.split('id=')[1] || null;
@@ -43,8 +22,6 @@ const {protocol, host, pathname} = location;
 const BASE_URL = protocol + "//" + host + pathname;
 const getPassportUrl = (id: string | number | null): string =>
     BASE_URL + (id ? '?id=' + id : '');
-
-const {assign} = Object;
 
 const $ = <T = HTMLElement>(id: string) => document.getElementById(id) as T;
 const transformBtns = (num: string | number) => {
@@ -56,14 +33,14 @@ const bookTranslateX = (value: string) => {
     book.style.transform = `translateX(${value})`;
 }
 
-interface SpreadElement extends HTMLDivElement {
+type SpreadElement = HTMLDivElement & {
     isCover: boolean,
     isFirst: boolean
 }
 
 // DOM-elements
 const body = document.body as HTMLBodyElement;
-const spreads = Array.from(body.querySelectorAll('.spread')) as SpreadElement[];
+const spreads = Array.from(body.querySelectorAll<SpreadElement>('.spread'));
 const rotateBtn = $<HTMLButtonElement>('rotate-btn');
 const prevBtn = $<HTMLButtonElement>('prev');
 const nextBtn = $<HTMLButtonElement>('next');
@@ -73,20 +50,22 @@ const idInput = $<HTMLInputElement>('id-input');
 const book = $<HTMLDivElement>('book');
 const pageF4 = $<HTMLDivElement>('marriages');
 
-const proxyDOM = (rootId: string, prefix: string, getObj: (arg: any)=>any) => new Proxy(
+const proxyDOM = <T extends Record<string, any>>(rootId: string, prefix: string, getObj: (arg: Record<string, any>) => T) => new Proxy(
     getObj(new Proxy($(rootId), {
         get: (target, name: string) => target.querySelector(prefix + name)
-    })),
-    {set: (target, name, value) => target[name].textContent = value}
+    })), {
+        set(target, name, value: string) {
+            target[name as keyof T].textContent = value;
+            return true;
+        }
+    }
 );
 
-type PassportStatusCode = '-1' | '0' | '1';
-type StampStatuses = Record<PassportStatusCode, [className: string, innerHTML: string]>;
-const stampStatuses: StampStatuses = {
+const stampStatuses = {
     '-1': ['null', 'Аннулировано'],
     '0' : ['no', ''],
     '1' : ['normal', `<svg class='osis'><use href='${sprite}#osis'></use></svg>`]
-};
+} satisfies Record<PassportStatusCode, [HTMLElement['className'], HTMLElement['innerHTML']]>;
 
 const mainPage = proxyDOM('f3', '#u_', u => ({
     name: u.name,
@@ -100,11 +79,11 @@ const mainPage = proxyDOM('f3', '#u_', u => ({
     doi: u.DoI,
     sex: u.sex,
     nationality: u.nationality,
-    stamp: assign(u.stamp, {
+    stamp: Object.assign(u.stamp, {
         _statuses: stampStatuses,
         setStatus(code: PassportStatusCode) {
             const [className, innerHTML] = this._statuses[code] || this._statuses[0];
-            assign(this, {className, innerHTML});
+            Object.assign(this, {className, innerHTML});
         }
     }),
 }));
@@ -116,7 +95,7 @@ const frontCover = proxyDOM('country_and_herb', '#', cah => ({
 
 type RGB = [number, number, number];
 
-interface Country {
+type Country = {
     code: string,
     name: string,
     color: RGB,
@@ -134,7 +113,7 @@ const countries: Country[] = [
 }));
 
 const rgbToHex = (rgb: RGB): string =>
-    '#' + rgb.map(c => (c > 15 ? '' : '0') + c.toString(16)).join('');
+    rgb.reduce((acc, c) => acc + (c > 15 ? '' : '0') + c.toString(16), '#');
 
 const qr = {
     setUrl(url: string) {
@@ -163,7 +142,7 @@ qr.render();
 
 // Set page positions & cover color
 for (let i = 0; i < spreads.length; i++)
-    spreads[i].style.zIndex = String(spreads.length - i);
+    spreads[i].style.zIndex = (spreads.length - i).toString();
 
 const [lastSpread/*, preLastSpread*/] = spreads.reverse();
 const [firstSpread, secondSpread] = spreads.reverse();
@@ -195,9 +174,8 @@ onpopstate = ({state}) => {
     } else location.reload();
 };
 
-mainPage.photo.onerror = (e: Event) => {
-    const el = e.target as HTMLImageElement;
-    el.src = currCountry.standardImage;
+mainPage.photo.onerror = function (this: HTMLImageElement) {
+    this.src = currCountry.standardImage;
 }
 function toHtml(data: Passport) {
     const [name, surname, sex, countryId, nationality, id, dob, doi, photoUrl, passportStatus, marriages] = data;
@@ -215,7 +193,7 @@ function toHtml(data: Passport) {
         mainPage.country = country.name;
     }
     mainPage.photo.src = photoUrl || country.standardImage;
-    assign(mainPage, {name, id, surname, dob, sex, nationality, doi});
+    Object.assign(mainPage, {name, id, surname, dob, sex, nationality, doi});
     mainPage.stamp.setStatus(passportStatus);
     pageF4.innerHTML = '';
     if (!marriages) return;
@@ -235,24 +213,24 @@ function toHtml(data: Passport) {
     }
 }
 
-function changeColor(currRGB: string, final: RGB, animDuration = 1000, animFrames = 60) {
+function changeColor(currRGB: string, final: RGB, duration = 1000, frames = 60) {
     clearInterval(colorChanging);
 
     const curr = currRGB.match(/\d+/g)!.map(Number) as RGB;
-    const arr = Array(3) as RGB;
+    const delta = Array(3) as RGB;
     for (let i = 0; i < 3; i++)
-        arr[i] = (curr[i]-final[i])/animFrames;
+        delta[i] = (curr[i]-final[i])/frames;
 
     const finalRGB = `rgb(${final})`;
 
     colorChanging = window.setInterval(() => {
-        for (let i = 0; i < 3; i++) curr[i] -= arr[i];
+        for (let i = 0; i < 3; i++) curr[i] -= delta[i];
         const currArrRGB = curr.map((num: number) => Math.round(num)) as RGB;
         qr.changeColor(rgbToHex(currArrRGB));
         currRGB = `rgb(${currArrRGB})`;
         body.style.setProperty('--p_color', currRGB);
         if (currRGB === finalRGB) clearInterval(colorChanging);
-    }, animDuration/animFrames);
+    }, duration/frames);
 }
 
 function openBook() {
@@ -278,20 +256,20 @@ function closeBook() {
     transformBtns(0);
 }
 
-type GetIndex = () => number;
-type BookHandlers = [typeof openBook, typeof closeBook] | [typeof closeBook, typeof openBook];
-interface PageControllerParams {
-    getIndex: GetIndex,
+type IndexGetter = () => number;
+type BookHandlers = [() => void, () => void];
+type PageControllerParams = {
+    getIndex: IndexGetter,
     bookHandlers: BookHandlers
 }
-interface PageController {
+type PageController = {
     next: () => void,
     prev: () => void,
     _isFlipping: boolean,
     _nextParams: PageControllerParams,
     _prevParams: PageControllerParams,
     _flip: (isNext: boolean, obj: {
-        getIndex: GetIndex
+        getIndex: IndexGetter
         bookHandlers: BookHandlers
     }) => boolean
 }
@@ -330,8 +308,8 @@ const pageController: PageController = {
         if (isCover) bookHandlers[isFirst ? 0 : 1]();
         setTimeout(() => {
             spread.style.zIndex =
-                (spread.querySelector('.front') as HTMLDivElement).style.zIndex =
-                    String(getIndex());
+                spread.querySelector<HTMLDivElement>('.front')!.style.zIndex =
+                    getIndex().toString();
         }, nextMod*250);
         setTimeout(() => {
             this._isFlipping = false
