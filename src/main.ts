@@ -14,7 +14,7 @@ passportsPromise.then(({response}) => {
     console.log('Passports have been loaded');
 });
 
-let passports: Passport[], currCountry: Country, colorChanging: number;
+let passports: readonly Passport[], currCountry: Country, colorChanging: number;
 let currPassportId = +location.search.split('id=')[1] || null;
 let currLoc = 1;
 
@@ -31,7 +31,7 @@ const transformBtns = (num: string | number) => {
 
 const bookTranslateX = (value: string) => {
     book.style.transform = `translateX(${value})`;
-}
+};
 
 type SpreadElement = HTMLDivElement & {
     isCover: boolean,
@@ -62,10 +62,10 @@ const proxyDOM = <T extends Record<string, any>>(rootId: string, prefix: string,
 );
 
 const stampStatuses = {
-    '-1': ['null', 'Аннулировано'],
-    '0' : ['no', ''],
-    '1' : ['normal', `<svg class='osis'><use href='${sprite}#osis'></use></svg>`]
-} satisfies Record<PassportStatusCode, [HTMLElement['className'], HTMLElement['innerHTML']]>;
+    '-1': ['null', 'Аннулировано'] as const,
+    '0' : ['no', ''] as const,
+    '1' : ['normal', `<svg class='osis'><use href='${sprite}#osis'></use></svg>`] as const
+} satisfies Record<PassportStatusCode, readonly [HTMLElement['className'], HTMLElement['innerHTML']]>;
 
 const mainPage = proxyDOM('f3', '#u_', u => ({
     name: u.name,
@@ -94,37 +94,38 @@ const frontCover = proxyDOM('country_and_herb', '#', cah => ({
 }));
 
 type RGB = [number, number, number];
+type ReadonlyRGB = Readonly<RGB>;
 
 type Country = {
-    code: string,
-    name: string,
-    color: RGB,
-    standardImage: string
-}
+    readonly code: string,
+    readonly name: string,
+    readonly color: ReadonlyRGB,
+    readonly standardImage: string
+};
 
-const countries: Country[] = [
-    ['gsld', '326', 'Республика Гусляндия', 'goose.svg'],
-    ['ngld', '5b3', 'Республика Неогусляндия', 'goose.svg'],
-    ['duck', 'e84', 'Утиное Государство', 'duck.png']
-].map(([code, colorHEX, name, stdImg]) => ({
-    code, name,
-    color: colorHEX.match(/./g)!.map(n => parseInt(n+n, 16)) as RGB,
-    standardImage:  './standard-image/' + stdImg
+const countries = ([
+    ['gsld', [51, 34, 102], 'Республика Гусляндия', 'goose.svg'],
+    ['ngld', [85, 187, 51], 'Республика Неогусляндия', 'goose.svg'],
+    ['duck', [238, 136, 68], 'Утиное Государство', 'duck.png']
+] as const).map(([code, color, name, stdImg]) => ({
+    code, name, color,
+    standardImage: './standard-image/' + stdImg
 }));
 
-const rgbToHex = (rgb: RGB): string =>
+const rgbToHex = (rgb: ReadonlyRGB): string =>
     rgb.reduce((acc, c) => acc + (c > 15 ? '' : '0') + c.toString(16), '#');
 
 const qr = {
-    setUrl(url: string) {
+    updateUrl(url: string) {
         this._url = url;
+        return this._render();
     },
-    render() {
-        QRCode.toCanvas(this._canvas, this._url, this._options);
+    updateColor(color: string) {
+        this._options.color.dark = color;
+        return this._render();
     },
-    changeColor(color: string) {
-        this._options.color!.dark = color;
-        this.render();
+    _render() {
+        return QRCode.toCanvas(this._canvas, this._url, this._options);
     },
     _url: getPassportUrl(currPassportId),
     _options: {
@@ -135,10 +136,10 @@ const qr = {
         width: 256,
         margin: 0,
         errorCorrectionLevel: 'L'
-    } as QRCodeRenderersOptions,
+    } satisfies QRCodeRenderersOptions,
     _canvas: $<HTMLCanvasElement>('qr-canvas')
-}
-qr.render();
+};
+qr._render();
 
 // Set page positions & cover color
 for (let i = 0; i < spreads.length; i++)
@@ -151,7 +152,7 @@ firstSpread.isCover = firstSpread.isFirst =
 
 const maxLoc = spreads.length + 1;
 
-function getPassport() {
+function updatePassport() {
     const id = +idInput.value;
     if (
         id > 0 &&
@@ -159,24 +160,26 @@ function getPassport() {
     ) {
         currPassportId = id;
         const passportUrl = getPassportUrl(id);
-        history.pushState({id}, null!, passportUrl);
-        qr.setUrl(passportUrl);
-        qr.render();
+        history.pushState({id}, '', passportUrl);
+        qr.updateUrl(passportUrl);
         toHtml(passports[id-1]);
     }
 }
 
-onpopstate = ({state}) => {
-    const id = state?.id || false;
+onpopstate = ({state}: {state: {id?: number}}) => {
+    const id = state.id;
     if (id) {
-        idInput.value = currPassportId = id;
+        idInput.value = id.toString();
+        currPassportId = id;
         toHtml(passports[id-1]);
-    } else location.reload();
+    } else {
+        location.reload();
+    }
 };
 
 mainPage.photo.onerror = function (this: HTMLImageElement) {
     this.src = currCountry.standardImage;
-}
+};
 function toHtml(data: Passport) {
     const [name, surname, sex, countryId, nationality, id, dob, doi, photoUrl, passportStatus, marriages] = data;
     const country = countries[countryId];
@@ -184,10 +187,7 @@ function toHtml(data: Passport) {
     if (currCountry !== country) {
         book.className = '';
         frontCover.countryName = country.name;
-        changeColor(
-            getComputedStyle(body).getPropertyValue('--p_color'),
-            country.color
-        );
+        updateColor(country.color);
         currCountry = country;
 
         mainPage.country = country.name;
@@ -213,23 +213,24 @@ function toHtml(data: Passport) {
     }
 }
 
-function changeColor(currRGB: string, final: RGB, duration = 1000, frames = 60) {
+let currColor = getComputedStyle(body).getPropertyValue('--p_color')
+    .match(/\d+/g)!.map(Number) as RGB;
+function updateColor(target: ReadonlyRGB, duration = 1000, frames = 60) {
     clearInterval(colorChanging);
 
-    const curr = currRGB.match(/\d+/g)!.map(Number) as RGB;
-    const delta = Array(3) as RGB;
+    const delta: RGB = [0, 0, 0];
     for (let i = 0; i < 3; i++)
-        delta[i] = (curr[i]-final[i])/frames;
+        delta[i] = (currColor[i]-target[i])/frames;
 
-    const finalRGB = `rgb(${final})`;
+    const targetHEX = rgbToHex(target);
 
     colorChanging = window.setInterval(() => {
-        for (let i = 0; i < 3; i++) curr[i] -= delta[i];
-        const currArrRGB = curr.map((num: number) => Math.round(num)) as RGB;
-        qr.changeColor(rgbToHex(currArrRGB));
-        currRGB = `rgb(${currArrRGB})`;
-        body.style.setProperty('--p_color', currRGB);
-        if (currRGB === finalRGB) clearInterval(colorChanging);
+        for (let i = 0; i < 3; i++) currColor[i] -= delta[i];
+        const currRounded = currColor.map((num) => Math.round(num)) as RGB;
+        const currHEX = rgbToHex(currRounded);
+        if (currHEX === targetHEX) clearInterval(colorChanging);
+        qr.updateColor(currHEX);
+        body.style.setProperty('--p_color', currHEX);
     }, duration/frames);
 }
 
@@ -257,18 +258,18 @@ function closeBook() {
 }
 
 type IndexGetter = () => number;
-type BookHandlers = [() => void, () => void];
+type BookHandlers = readonly [() => void, () => void];
 type PageControllerParams = {
-    getIndex: IndexGetter,
-    bookHandlers: BookHandlers
+    readonly getIndex: IndexGetter,
+    readonly bookHandlers: BookHandlers
 }
 type PageController = {
-    next: () => void,
-    prev: () => void,
+    readonly next: () => void,
+    readonly prev: () => void,
     _isFlipping: boolean,
-    _nextParams: PageControllerParams,
-    _prevParams: PageControllerParams,
-    _flip: (isNext: boolean, obj: {
+    readonly _nextParams: PageControllerParams,
+    readonly _prevParams: PageControllerParams,
+    readonly _flip: (isNext: boolean, obj: {
         getIndex: IndexGetter
         bookHandlers: BookHandlers
     }) => boolean
@@ -344,20 +345,24 @@ book.addEventListener('click', e => {
 prevBtn.addEventListener('click', () => pageController.prev());
 nextBtn.addEventListener('click', () => pageController.next());
 rotateBtn.addEventListener('click', rotateBook);
-idBtn.addEventListener('click', getPassport);
+idBtn.addEventListener('click', updatePassport);
 const keyEvents = {
     ArrowRight() {pageController.next()},
     ArrowLeft() {pageController.prev()}
 };
 document.addEventListener('keydown', ({key}) => {
     if (getSelection()!.anchorNode === idForm) return;
-    if (+key) idInput.select();
-    else keyEvents[(key as keyof typeof keyEvents)]?.();
+    if (+key) {
+        idInput.select();
+    } else {
+        keyEvents[key as keyof typeof keyEvents]?.();
+    }
 });
-idInput.addEventListener('keydown', e => e.key === 'Enter' && getPassport());
-idInput.addEventListener('input', e => {
-    const el = e.target as typeof idInput;
-    el.value = +el.value > +el.max
-        ? el.max
-        : el.value.replace(/^[-0]+/g, '');
+idInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') updatePassport();
+});
+idInput.addEventListener('input', function() {
+    this.value = +this.value > +this.max
+        ? this.max
+        : this.value.replace(/^[-0]+/g, '');
 });
