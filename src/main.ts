@@ -226,8 +226,7 @@ function updateColor(target: ReadonlyRGB, duration = 1000, frames = 60) {
 
     colorChanging = window.setInterval(() => {
         for (let i = 0; i < 3; i++) currColor[i] -= delta[i];
-        const currRounded = currColor.map((num) => Math.round(num)) as RGB;
-        const currHEX = rgbToHex(currRounded);
+        const currHEX = rgbToHex(currColor.map((num) => Math.round(num)) as RGB);
         if (currHEX === targetHEX) clearInterval(colorChanging);
         qr.updateColor(currHEX);
         body.style.setProperty('--p_color', currHEX);
