@@ -1,7 +1,7 @@
-import QRCode, {QRCodeRenderersOptions} from 'qrcode'
-import passportsPromise from '@passports'
-import sprite from './sprite.svg'
-import {Passport, PassportStatusCode} from './types';
+import QRCode, {QRCodeRenderersOptions} from 'qrcode';
+import sprite from './sprite.svg';
+import type {Passport, PassportStatusCode} from './types';
+import passportsPromise from '@passports';
 
 passportsPromise.then(({response}) => {
     passports = response;
@@ -228,8 +228,8 @@ function updateColor(target: ReadonlyRGB, duration = 1000, frames = 60) {
         for (let i = 0; i < 3; i++) currColor[i] -= delta[i];
         const currHEX = rgbToHex(currColor.map((num) => Math.round(num)) as RGB);
         if (currHEX === targetHEX) clearInterval(colorChanging);
-        qr.updateColor(currHEX);
         body.style.setProperty('--p_color', currHEX);
+		qr.updateColor(currHEX);
     }, duration/frames);
 }
 
