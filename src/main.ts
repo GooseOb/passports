@@ -50,48 +50,53 @@ const idInput = $<HTMLInputElement>('id-input');
 const book = $<HTMLDivElement>('book');
 const pageF4 = $<HTMLDivElement>('marriages');
 
-const proxyDOM = <T extends Record<string, any>>(rootId: string, prefix: string, getObj: (arg: Record<string, any>) => T) => new Proxy(
-    getObj(new Proxy($(rootId), {
-        get: (target, name: string) => target.querySelector(prefix + name)
-    })), {
-        set(target, name, value: string) {
-            target[name as keyof T].textContent = value;
-            return true;
-        }
-    }
-);
-
 const stampStatuses = {
     '-1': ['null', 'Аннулировано'] as const,
     '0' : ['no', ''] as const,
     '1' : ['normal', `<svg class='osis'><use href='${sprite}#osis'></use></svg>`] as const
 } satisfies Record<PassportStatusCode, readonly [HTMLElement['className'], HTMLElement['innerHTML']]>;
 
-const mainPage = proxyDOM('f3', '#u_', u => ({
-    name: u.name,
-    flagCont: u['flag-container'],
-    flag: u.flag,
-    country: u.country,
-    photo: u.photo,
-    id: u.id,
-    surname: u.surname,
-    dob: u.DoB,
-    doi: u.DoI,
-    sex: u.sex,
-    nationality: u.nationality,
-    stamp: Object.assign(u.stamp, {
+const mainPage = {
+    name: $('u_name'),
+    flagCont: $('u_flag-container'),
+    flag: $('u_flag'),
+    country: $('u_country'),
+    photo: {
+        element: $<HTMLImageElement>('u_photo'),
+        set textContent(value: string) {
+            this.element.src = value;
+        }
+    },
+    id: $('u_id'),
+    surname: $('u_surname'),
+    dob: $('u_DoB'),
+    doi: $('u_DoI'),
+    sex: $('u_sex'),
+    nationality: $('u_nationality'),
+    stamp: {
+        element: $('u_stamp'),
+        set textContent(value: PassportStatusCode) {
+            this.setStatus(value);
+        },
         _statuses: stampStatuses,
         setStatus(code: PassportStatusCode) {
             const [className, innerHTML] = this._statuses[code] || this._statuses[0];
-            Object.assign(this, {className, innerHTML});
+            Object.assign(this.element, {className, innerHTML});
         }
-    }),
-}));
+    },
+};
 
-const frontCover = proxyDOM('country_and_herb', '#', cah => ({
-    countryName: cah['country-name'],
-    herb: cah.herb,
-}));
+const setNodesContent = <TNodes extends Record<string, { textContent: any }>, TKey extends keyof TNodes>(
+    nodes: TNodes,
+    obj: {[Key in TKey]: TNodes[Key]['textContent']}
+) => {
+    for (const key in obj)
+        nodes[key].textContent = obj[key];
+};
+
+const frontCover = {
+    countryName: $('country-name')
+};
 
 type RGB = [number, number, number];
 type ReadonlyRGB = Readonly<RGB>;
@@ -166,7 +171,7 @@ function updatePassport() {
     }
 }
 
-onpopstate = ({state}: {state: {id?: number}}) => {
+window.addEventListener('popstate', ({state}: {state: {id?: number}}) => {
     const id = state.id;
     if (id) {
         idInput.value = id.toString();
@@ -175,26 +180,29 @@ onpopstate = ({state}: {state: {id?: number}}) => {
     } else {
         location.reload();
     }
-};
-
-mainPage.photo.onerror = function (this: HTMLImageElement) {
+});
+mainPage.photo.element.addEventListener('error', function () {
     this.src = currCountry.standardImage;
-};
+});
+
 function toHtml(data: Passport) {
     const [name, surname, sex, countryId, nationality, id, dob, doi, photoUrl, passportStatus, marriages] = data;
     const country = countries[countryId];
     book.dataset.code = country.code;
     if (currCountry !== country) {
         book.className = '';
-        frontCover.countryName = country.name;
+        frontCover.countryName.textContent = country.name;
         updateColor(country.color);
         currCountry = country;
 
-        mainPage.country = country.name;
+        mainPage.country.textContent = country.name;
     }
-    mainPage.photo.src = photoUrl || country.standardImage;
-    Object.assign(mainPage, {name, id, surname, dob, sex, nationality, doi});
-    mainPage.stamp.setStatus(passportStatus);
+    setNodesContent(mainPage, {
+        name, surname, dob, sex, nationality, doi,
+        id: id.toString(),
+        stamp: passportStatus,
+        photo: photoUrl || country.standardImage
+    });
     pageF4.innerHTML = '';
     if (!marriages) return;
     for (let i = 0; i < marriages.length; i++) {
