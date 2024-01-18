@@ -35,9 +35,6 @@ body
   #book[data-code=#{$code}]
     #u_flag
       width: $flag-w
-    @if $default-symbols
-      --herb_url: url('/#{$code}/herb.svg')
-      --flag_url: url('/#{$code}/flag.svg')
     @content
 
 @include country(gsld, 100px)
@@ -47,8 +44,6 @@ body
     font-size: 20px
 
 @include country(duck, 100%, false)
-  --herb_url: url('/duck/herb.svg')
-  --flag_url: var(--herb_url)
   #u_flag-container
     background: #8ce
     width: 80%

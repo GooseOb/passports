@@ -86,6 +86,13 @@ const mainPage = {
     },
 };
 
+const setBodyVar = (name: string, value: string) => {
+    body.style.setProperty('--' + name, value);
+};
+const setBodyUrlVar = (name: keyof Country['stateSymbols'], value: string) => {
+    setBodyVar(name + '_url', `url(${value})`);
+};
+
 const setNodesContent = <TNodes extends Record<string, { textContent: any }>, TKey extends keyof TNodes>(
     nodes: TNodes,
     obj: {[Key in TKey]: TNodes[Key]['textContent']}
@@ -105,16 +112,22 @@ type Country = {
     readonly code: string,
     readonly name: string,
     readonly color: ReadonlyRGB,
-    readonly standardImage: string
+    readonly standardImage: string,
+    readonly stateSymbols: {flag: string, herb: string}
 };
 
+const getDefaultSymbols = (code: string) => ({
+    herb: `/${code}/herb.svg`,
+    flag: `/${code}/flag.svg`
+}) satisfies Country['stateSymbols'];
 const countries = ([
-    ['gsld', [51, 34, 102], 'Республика Гусляндия', 'goose.svg'],
-    ['ngld', [85, 187, 51], 'Республика Неогусляндия', 'goose.svg'],
-    ['duck', [238, 136, 68], 'Утиное Государство', 'duck.png']
-] as const).map(([code, color, name, stdImg]) => ({
+    ['gsld', [51, 34, 102], 'Республика Гусляндия', 'goose.svg', getDefaultSymbols('gsld')],
+    ['ngld', [85, 187, 51], 'Республика Неогусляндия', 'goose.svg', getDefaultSymbols('ngld')],
+    ['duck', [238, 136, 68], 'Утиное Государство', 'duck.png', {herb: '/duck/herb.svg', flag: '/duck/herb.svg'}]
+] as const).map(([code, color, name, stdImg, stateSymbols]) => ({
     code, name, color,
-    standardImage: './standard-image/' + stdImg
+    standardImage: './standard-image/' + stdImg,
+    stateSymbols
 }));
 
 const rgbToHex = (rgb: ReadonlyRGB): string =>
@@ -197,6 +210,8 @@ function toHtml(data: Passport) {
 
         mainPage.country.textContent = country.name;
     }
+    setBodyUrlVar('herb', country.stateSymbols.herb);
+    setBodyUrlVar('flag', country.stateSymbols.flag);
     setNodesContent(mainPage, {
         name, surname, dob, sex, nationality, doi,
         id: id.toString(),
@@ -236,7 +251,7 @@ function updateColor(target: ReadonlyRGB, duration = 1000, frames = 60) {
         for (let i = 0; i < 3; i++) currColor[i] -= delta[i];
         const currHEX = rgbToHex(currColor.map((num) => Math.round(num)) as RGB);
         if (currHEX === targetHEX) clearInterval(colorChanging);
-        body.style.setProperty('--p_color', currHEX);
+        setBodyVar('p_color', currHEX);
 		qr.updateColor(currHEX);
     }, duration/frames);
 }
