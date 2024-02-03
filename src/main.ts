@@ -1,6 +1,6 @@
 import QRCode, {QRCodeRenderersOptions} from 'qrcode';
 import sprite from './sprite.svg';
-import type {Passport, PassportStatusCode} from './types';
+import type {Passport, PassportStatusCode, Country, RGB, ReadonlyRGB} from './types';
 import passportsPromise from '@passports';
 
 passportsPromise.then(({response}) => {
@@ -89,9 +89,6 @@ const mainPage = {
 const setBodyVar = (name: string, value: string) => {
     body.style.setProperty('--' + name, value);
 };
-const setBodyUrlVar = (name: keyof Country['stateSymbols'], value: string) => {
-    setBodyVar(name + '_url', `url(${value})`);
-};
 
 const setNodesContent = <TNodes extends Record<string, { textContent: any }>, TKey extends keyof TNodes>(
     nodes: TNodes,
@@ -103,17 +100,6 @@ const setNodesContent = <TNodes extends Record<string, { textContent: any }>, TK
 
 const frontCover = {
     countryName: $('country-name')
-};
-
-type RGB = [number, number, number];
-type ReadonlyRGB = Readonly<RGB>;
-
-type Country = {
-    readonly code: string,
-    readonly name: string,
-    readonly color: ReadonlyRGB,
-    readonly standardImage: string,
-    readonly stateSymbols: {flag: string, herb: string}
 };
 
 const getDefaultSymbols = (code: string) => ({
@@ -210,8 +196,8 @@ function toHtml(data: Passport) {
 
         mainPage.country.textContent = country.name;
     }
-    setBodyUrlVar('herb', country.stateSymbols.herb);
-    setBodyUrlVar('flag', country.stateSymbols.flag);
+    for (const key in country.stateSymbols)
+        setBodyVar(key + '_url', `url(${country.stateSymbols[key as keyof Country['stateSymbols']]})`);
     setNodesContent(mainPage, {
         name, surname, dob, sex, nationality, doi,
         id: id.toString(),
@@ -238,8 +224,8 @@ function toHtml(data: Passport) {
 
 let currColor = getComputedStyle(body).getPropertyValue('--p_color')
     .match(/\d+/g)!.map(Number) as RGB;
-function updateColor(target: ReadonlyRGB, duration = 1000, frames = 60) {
-    clearInterval(colorChanging);
+function updateColor(target: ReadonlyRGB, frames = 60) {
+    cancelAnimationFrame(colorChanging);
 
     const delta: RGB = [0, 0, 0];
     for (let i = 0; i < 3; i++)
@@ -247,13 +233,14 @@ function updateColor(target: ReadonlyRGB, duration = 1000, frames = 60) {
 
     const targetHEX = rgbToHex(target);
 
-    colorChanging = window.setInterval(() => {
+    const changeColor = () => {
         for (let i = 0; i < 3; i++) currColor[i] -= delta[i];
         const currHEX = rgbToHex(currColor.map((num) => Math.round(num)) as RGB);
-        if (currHEX === targetHEX) clearInterval(colorChanging);
+        if (currHEX !== targetHEX) colorChanging = requestAnimationFrame(changeColor);
         setBodyVar('p_color', currHEX);
-		qr.updateColor(currHEX);
-    }, duration/frames);
+        qr.updateColor(currHEX);
+    };
+    colorChanging = requestAnimationFrame(changeColor);
 }
 
 function openBook() {

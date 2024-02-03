@@ -20,3 +20,14 @@ export type Passport = readonly [
 ];
 
 export type PassportResponse = {response: Passport[]};
+
+export type RGB = [number, number, number];
+export type ReadonlyRGB = Readonly<RGB>;
+
+export type Country = {
+    readonly code: string,
+    readonly name: string,
+    readonly color: ReadonlyRGB,
+    readonly standardImage: string,
+    readonly stateSymbols: {flag: string, herb: string}
+};
