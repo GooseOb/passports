@@ -49,6 +49,7 @@ const idForm = $<HTMLFormElement>('id-form');
 const idInput = $<HTMLInputElement>('id-input');
 const book = $<HTMLDivElement>('book');
 const pageF4 = $<HTMLDivElement>('marriages');
+const qrContainer = $<HTMLDivElement>('qr');
 
 const stampStatuses = {
     '-1': ['null', 'Аннулировано'] as const,
@@ -149,8 +150,8 @@ qr._render();
 for (let i = 0; i < spreads.length; i++)
     spreads[i].style.zIndex = (spreads.length - i).toString();
 
-const [lastSpread/*, preLastSpread*/] = spreads.reverse();
-const [firstSpread, secondSpread] = spreads.reverse();
+const [firstSpread, secondSpread] = spreads;
+const [lastSpread/*, preLastSpread*/] = spreads.toReversed();
 firstSpread.isCover = firstSpread.isFirst =
     lastSpread.isCover = secondSpread.isFirst = true;
 
@@ -206,8 +207,7 @@ function toHtml(data: Passport) {
     });
     pageF4.innerHTML = '';
     if (!marriages) return;
-    for (let i = 0; i < marriages.length; i++) {
-        const [date, name, divorceDate = false] = marriages[i];
+    for (const [date, name, divorceDate = false] of marriages) {
         const divorce = divorceDate
             ? `<div class='divorce'> Расторгнут ${divorceDate} </div>`
             : '';
@@ -342,17 +342,28 @@ function rotateBook() {
 }
 
 // Listeners
-book.addEventListener('click', e => {
+book.addEventListener('click', (e) => {
     const el = e.target as HTMLElement;
-    if (el.closest('#qr'))
-        navigator.clipboard.writeText(location.href);
-    else if (el.closest('.front'))
+    if (el.closest('.front'))
         pageController.next();
     else
         pageController.prev();
 });
-prevBtn.addEventListener('click', () => pageController.prev());
-nextBtn.addEventListener('click', () => pageController.next());
+const onQrClick = (e: Event) => {
+    navigator.clipboard.writeText(location.href);
+    e.preventDefault();
+    e.stopPropagation();
+};
+qrContainer.addEventListener('click', onQrClick);
+qrContainer.addEventListener('keyup', (e) => {
+    if (e.code === 'Enter' || e.code === 'Space') onQrClick(e);
+});
+prevBtn.addEventListener('click', () => {
+    pageController.prev()
+});
+nextBtn.addEventListener('click', () => {
+    pageController.next()
+});
 rotateBtn.addEventListener('click', rotateBook);
 idBtn.addEventListener('click', updatePassport);
 const keyEvents = {
