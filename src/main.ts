@@ -1,5 +1,4 @@
 import QRCode, { QRCodeRenderersOptions } from "qrcode";
-import sprite from "./sprite.svg";
 import type {
   Passport,
   PassportStatusCode,
@@ -58,12 +57,9 @@ const pageF4 = $<HTMLDivElement>("marriages");
 const qrContainer = $<HTMLDivElement>("qr");
 
 const stampStatuses = {
-  "-1": ["null", "Аннулировано"] as const,
-  "0": ["no", ""] as const,
-  "1": [
-    "normal",
-    `<svg class='osis'><use href='${sprite}#osis'></use></svg>`,
-  ] as const,
+  "-1": ["null", "Аннулировано"],
+  "0": ["no", ""],
+  "1": ["normal", $("osis").innerHTML],
 } satisfies Record<
   PassportStatusCode,
   readonly [HTMLElement["className"], HTMLElement["innerHTML"]]
