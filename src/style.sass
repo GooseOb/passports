@@ -210,15 +210,12 @@ body
 
 .p_bottom
   position: absolute
+  display: flex
   bottom: 0
   height: 60px
   width: 100%
   background-color: #222
-
-.p_text
-  position: absolute
-  top: 50%
-  left: 50%
+  stroke: #fff
 
 .end
   background-color: $p_color
@@ -327,7 +324,6 @@ body
   color: $p_color
   font-size: 37px
   font-weight: bold
-  padding: 8px
   height: 60px
   width: 130px
   transform: rotate(-90deg) translate(100%, 400%)
@@ -335,9 +331,8 @@ body
   align-items: center
   border: $p_color solid 4px
   opacity: 50%
-  & > .osis
-    stroke: $p_color
-    stroke-width: 18px
+  stroke: $p_color
+  stroke-width: 18px
   &.no
     visibility: hidden
   &.normal
@@ -346,12 +341,9 @@ body
     @include visible-stamp(90%, translateY(200%))
 
 #osis
-  transform: translate(-50%, -45%)
-
-.osis
+  margin: auto
   height: 50px
   fill: none
-  stroke: #fff
   stroke-width: 16px
   stroke-linejoin: round
 

@@ -1,172 +1,165 @@
-<!DOCTYPE html>
-<html lang='ru' prefix='og: https://ogp.me/ns#'>
-<head>
-  <meta charset='UTF-8'>
-  <meta property='og:title' content='Паспорта'>
-  <meta property='og:description' content='Паспорта граждан стран ОСИГ'>
-  <meta property='og:url' content='https://gooseob.github.io/passports/'>
-  <meta property='og:image' content='og.jpg'>
-  <title>Паспорта</title>
-  <link rel='stylesheet' href='/src/style.sass'>
-  <script type="module" src="/src/main.ts"></script>
-</head>
-<body class='loading'>
-<span id="country-code"></span>
+<!doctype html>
+<html lang="ru" prefix="og: https://ogp.me/ns#">
+  <head>
+    <meta charset="UTF-8" />
+    <meta property="og:title" content="Паспорта" />
+    <meta property="og:description" content="Паспорта граждан стран ОСИГ" />
+    <meta property="og:url" content="https://gooseob.github.io/passports/" />
+    <meta property="og:image" content="og.jpg" />
+    <title>Паспорта</title>
+    <link rel="stylesheet" href="/src/style.sass" />
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body class="loading">
+    <span id="country-code"></span>
 
-<button class='p_btn' id='prev' tabindex='1'>
-  &#60;&#60;
-</button>
+    <button class="p_btn" id="prev" tabindex="1">&#60;&#60;</button>
 
-<div id='book-container'>
-  <div id='book'>
-
-    <div class='spread'>
-      <div class='front'>
-        <div id='f1' class='page front-content end'>
-          <h1 id='title'>ПАСПОРТ</h1>
-          <div id='country_and_herb'>
-            <h2 id='country-name'>ОБРАЗЕЦ</h2>
-            <div id='herb'></div>
-          </div>
-          <div class='p_bottom'>
-            <span class='p_text' id='osis'>
-              <svg class='osis'>
-                <use href='/src/sprite.svg#osis'></use>
-              </svg>
-            </span>
-          </div>
-        </div>
-      </div>
-      <div class='back'>
-        <div id='b1' class='page back-content end'>
-          <div class='p_bottom'></div>
-        </div>
-      </div>
-    </div>
-
-    <div class='spread'>
-      <div class='front'>
-        <div id='f2' class='page front-content f'>
-          <div class='paper'>
-            <span class='page-num'>1</span>
-          </div>
-        </div>
-      </div>
-      <div class='back'>
-        <div id='b2' class='page back-content b'>
-          <div class='paper'>
-            <div id='qr' tabindex='0' role="button">
-              <canvas id='qr-canvas'></canvas>
-            </div>
-            <span class='page-num'>2</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class='spread'>
-      <div class='front'>
-        <div id='f3' class='page front-content f'>
-          <div class='paper'>
-            <div class='main-content'>
-              <span id='u_flag-container'><div id='u_flag'></div></span>
-              <h2 id='u_country'>Название государства</h2>
-              <img src='/standard-image/goose.svg' alt='Фото' id='u_photo'>
-              <span class='u_title'>Имя</span>
-              <span class='u_title'>ID VK</span>
-              <span class='u_output' id='u_name'>Имя</span>
-              <span class='u_output' id='u_id'>000000000</span>
-              <span class='u_title'>Фамилия</span>
-              <span class='u_title'>Дата рождения</span>
-              <span class='u_output' id='u_surname'>Фамилия</span>
-              <span class='u_output' id='u_DoB'>00.00.0000</span>
-              <span class='u_title u_sex'>Пол</span>
-              <span class='u_title'>Национальность</span>
-              <span class='u_title'>Дата выдачи</span>
-              <span class='u_output u_sex' id='u_sex'>М/Ж/#</span>
-              <span class='u_output' id='u_nationality'>Гусь/Утка/#</span>
-              <span class='u_output' id='u_DoI'>00.00.0000</span>
-              <span class='u_title' id='u_pdep'>Паспортный департамент ОСИГ</span>
-            </div>
-            <span class='page-num'>3</span>
-          </div>
-          <div id='u_stamp'>
-            <svg class='osis'>
-              <use href='/src/sprite.svg#osis'></use>
-            </svg>
-          </div>
-        </div>
-      </div>
-      <div class='back'>
-        <div id='b3' class='page back-content b'>
-          <div class='paper'>
-            <span class='page-num'>4</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class='spread'>
-      <div class='front'>
-        <div id='f4' class='page front-content f'>
-          <div class='paper marriages'>
-            <span class='title'>
-              Браки
-            </span>
-            <div id='marriages'>
-              <div class='card'>
-                <div class='data'>
-                  <span>
-                    Имя Фамилия
-                  </span>
-                  <span class='date'>
-                      00.00.0000
-                  </span>
-                </div>
-                <div class='divorce'>
-                  Расторгнут 00.00.0000
-                </div>
+    <div id="book-container">
+      <div id="book">
+        <div class="spread">
+          <div class="front">
+            <div id="f1" class="page front-content end">
+              <h1 id="title">ПАСПОРТ</h1>
+              <div id="country_and_herb">
+                <h2 id="country-name">ОБРАЗЕЦ</h2>
+                <div id="herb"></div>
+              </div>
+              <div class="p_bottom">
+                <svg id="osis" class="osis">
+                  <use href="/src/sprite.svg#osis"></use>
+                </svg>
               </div>
             </div>
-            <span class='page-num'>5</span>
+          </div>
+          <div class="back">
+            <div id="b1" class="page back-content end">
+              <div class="p_bottom"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spread">
+          <div class="front">
+            <div id="f2" class="page front-content f">
+              <div class="paper">
+                <span class="page-num">1</span>
+              </div>
+            </div>
+          </div>
+          <div class="back">
+            <div id="b2" class="page back-content b">
+              <div class="paper">
+                <div id="qr" tabindex="0" role="button">
+                  <canvas id="qr-canvas"></canvas>
+                </div>
+                <span class="page-num">2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spread">
+          <div class="front">
+            <div id="f3" class="page front-content f">
+              <div class="paper">
+                <div class="main-content">
+                  <span id="u_flag-container"><div id="u_flag"></div></span>
+                  <h2 id="u_country">Название государства</h2>
+                  <img
+                    src="/standard-image/goose.svg"
+                    alt="Фото"
+                    id="u_photo"
+                  />
+                  <span class="u_title">Имя</span>
+                  <span class="u_title">ID VK</span>
+                  <span class="u_output" id="u_name">Имя</span>
+                  <span class="u_output" id="u_id">000000000</span>
+                  <span class="u_title">Фамилия</span>
+                  <span class="u_title">Дата рождения</span>
+                  <span class="u_output" id="u_surname">Фамилия</span>
+                  <span class="u_output" id="u_DoB">00.00.0000</span>
+                  <span class="u_title u_sex">Пол</span>
+                  <span class="u_title">Национальность</span>
+                  <span class="u_title">Дата выдачи</span>
+                  <span class="u_output u_sex" id="u_sex">М/Ж/#</span>
+                  <span class="u_output" id="u_nationality">Гусь/Утка/#</span>
+                  <span class="u_output" id="u_DoI">00.00.0000</span>
+                  <span class="u_title" id="u_pdep"
+                    >Паспортный департамент ОСИГ</span
+                  >
+                </div>
+                <span class="page-num">3</span>
+              </div>
+              <div id="u_stamp">
+                <svg class="osis">
+                  <use href="/src/sprite.svg#osis"></use>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="back">
+            <div id="b3" class="page back-content b">
+              <div class="paper">
+                <span class="page-num">4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spread">
+          <div class="front">
+            <div id="f4" class="page front-content f">
+              <div class="paper marriages">
+                <span class="title"> Браки </span>
+                <div id="marriages">
+                  <div class="card">
+                    <div class="data">
+                      <span> Имя Фамилия </span>
+                      <span class="date"> 00.00.0000 </span>
+                    </div>
+                    <div class="divorce">Расторгнут 00.00.0000</div>
+                  </div>
+                </div>
+                <span class="page-num">5</span>
+              </div>
+            </div>
+          </div>
+          <div class="back">
+            <div id="b4" class="page back-content b">
+              <div class="paper">
+                <span class="page-num">6</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spread">
+          <div class="front">
+            <div id="f5" class="page front-content end">
+              <div class="p_bottom"></div>
+            </div>
+          </div>
+          <div class="back">
+            <div id="b5" class="page back-content end">
+              <div class="p_bottom"></div>
+            </div>
           </div>
         </div>
       </div>
-      <div class='back'>
-        <div id='b4' class='page back-content b'>
-          <div class='paper'>
-            <span class='page-num'>6</span>
-          </div>
-        </div>
+
+      <button id="rotate-btn" class="p_btn">Перевернуть</button>
+      <div id="id-form">
+        <input
+          id="id-input"
+          type="number"
+          min="1"
+          placeholder="№"
+          autocomplete="off"
+        />
+        <button id="id-btn" class="p_btn"></button>
       </div>
     </div>
-
-    <div class='spread'>
-      <div class='front'>
-        <div id='f5' class='page front-content end'>
-          <div class='p_bottom'></div>
-        </div>
-      </div>
-      <div class='back'>
-        <div id='b5' class='page back-content end'>
-          <div class='p_bottom'></div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <button id='rotate-btn' class='p_btn'>
-    Перевернуть
-  </button>
-  <div id='id-form'>
-    <input id='id-input' type='number' min='1' placeholder='№' autocomplete='off'>
-    <button id='id-btn' class='p_btn'></button>
-  </div>
-</div>
-<button class='p_btn' id='next' tabindex='1'>
-  &#62;&#62;
-</button>
-
-</body>
+    <button class="p_btn" id="next" tabindex="1">&#62;&#62;</button>
+  </body>
 </html>

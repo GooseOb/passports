@@ -59,7 +59,7 @@ const qrContainer = $<HTMLDivElement>("qr");
 const stampStatuses = {
   "-1": ["null", "Аннулировано"],
   "0": ["no", ""],
-  "1": ["normal", $("osis").innerHTML],
+  "1": ["normal", $("osis").outerHTML],
 } satisfies Record<
   PassportStatusCode,
   readonly [HTMLElement["className"], HTMLElement["innerHTML"]]
