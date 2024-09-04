@@ -90,11 +90,7 @@ const mainPage = {
   stamp: {
     element: $("u_stamp"),
     set textContent(value: PassportStatusCode) {
-      this.setStatus(value);
-    },
-    _statuses: stampStatuses,
-    setStatus(code: PassportStatusCode) {
-      const [className, innerHTML] = this._statuses[code] || this._statuses[0];
+      const [className, innerHTML] = stampStatuses[value] || stampStatuses[0];
       Object.assign(this.element, { className, innerHTML });
     },
   },
