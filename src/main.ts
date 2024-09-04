@@ -1,4 +1,4 @@
-import QRCode, { QRCodeRenderersOptions } from "qrcode";
+import QRCode, { type QRCodeRenderersOptions } from "qrcode";
 import type {
   Passport,
   PassportStatusCode,
