@@ -26,6 +26,7 @@ let currPassportId = ((id) => (id ? +id : id))(
   urlParams.get("id") as `${number}` | null,
 );
 const initialPage = urlParams.get("page");
+const initialRotated = urlParams.get("rotated") === "";
 
 const { protocol, host, pathname } = location;
 const BASE_URL = protocol + "//" + host + pathname;
@@ -389,6 +390,10 @@ function rotateBook() {
   book.style.transform = `rotate(90deg) translateX(${isMaxLoc ? 120 : 20}%)`;
   transformBtns(80);
 }
+if (initialRotated)
+  setTimeout(() => {
+    rotateBook();
+  }, 250);
 
 // Listeners
 book.addEventListener("click", (e) => {
