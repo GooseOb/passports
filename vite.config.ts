@@ -1,4 +1,4 @@
-import { defineConfig, UserConfig } from "vite";
+import { defineConfig, type UserConfig } from "vite";
 import tsConfig from "./tsconfig.json" assert { type: "json" };
 import path from "path";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
@@ -26,6 +26,6 @@ const cfg: UserConfig = {
 export default defineConfig(({ command }) => {
   const isDev = command === "serve";
   if (isDev)
-    alias["@passports"] = path.resolve("src", "get-passports", "dev-static.ts");
+    alias["@passports"] = path.resolve("src", "get-passports", "mock.ts");
   return cfg;
 });
