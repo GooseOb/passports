@@ -20,8 +20,12 @@ passportsPromise.then(({ response }) => {
 });
 
 let passports: readonly Passport[], currCountry: Country, colorChanging: number;
-let currPassportId = +location.search.split("id=")[1] || null;
 let currLoc = 1;
+const urlParams = new URLSearchParams(location.search);
+let currPassportId = ((id) => (id ? +id : id))(
+  urlParams.get("id") as `${number}` | null,
+);
+const initialPage = urlParams.get("page");
 
 const { protocol, host, pathname } = location;
 const BASE_URL = protocol + "//" + host + pathname;
@@ -301,6 +305,7 @@ type PageControllerParams = {
 type PageController = {
   readonly next: () => void;
   readonly prev: () => void;
+  readonly goTo: (loc: number) => void;
   _isFlipping: boolean;
   readonly _nextParams: PageControllerParams;
   readonly _prevParams: PageControllerParams;
@@ -314,6 +319,10 @@ type PageController = {
 };
 
 let spreadI: number;
+const FLIP_TIME = 250;
+
+const getLocByPage = (page: number): number =>
+  page < 1 ? 1 : page > 6 ? maxLoc : Math.floor(page / 2) + 2;
 
 const pageController: PageController = {
   next() {
@@ -323,6 +332,18 @@ const pageController: PageController = {
   prev() {
     if (currLoc === 1) return;
     if (this._flip(false, this._prevParams)) --currLoc;
+  },
+  goTo(loc) {
+    if (loc === currLoc) return;
+    const isNext = loc > currLoc;
+    const params = isNext ? this._nextParams : this._prevParams;
+    const mod = isNext ? 1 : -1;
+    const interval = setInterval(() => {
+      if (this._flip(isNext, params)) {
+        currLoc += mod;
+        if (currLoc === loc) clearInterval(interval);
+      }
+    }, FLIP_TIME);
   },
   _isFlipping: false,
   _nextParams: {
@@ -350,10 +371,11 @@ const pageController: PageController = {
     }, nextMod * 250);
     setTimeout(() => {
       this._isFlipping = false;
-    }, 250);
+    }, FLIP_TIME);
     return true;
   },
 };
+if (initialPage) pageController.goTo(getLocByPage(+initialPage));
 
 function rotateBook() {
   const isMaxLoc = currLoc === maxLoc;
