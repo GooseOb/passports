@@ -1,11 +1,7 @@
+import { SmoothColorUpdater } from "./color-updater";
+import { parseRGB } from "./lib";
 import { QR } from "./qr";
-import type {
-  Passport,
-  PassportStatusCode,
-  Country,
-  RGB,
-  ReadonlyRGB,
-} from "./types";
+import type { Passport, PassportStatusCode, Country } from "./types";
 import passportsPromise from "@passports";
 
 passportsPromise.then(({ response }) => {
@@ -19,7 +15,7 @@ passportsPromise.then(({ response }) => {
   console.log("Passports have been loaded");
 });
 
-let passports: readonly Passport[], currCountry: Country, colorChanging: number;
+let passports: readonly Passport[], currCountry: Country;
 let currLoc = 1;
 const urlParams = new URLSearchParams(location.search);
 let currPassportId = ((id) => (id ? +id : id))(
@@ -133,9 +129,6 @@ const countries = (
   standardImage: "./standard-image/" + stdImg,
 }));
 
-const rgbToHex = (rgb: ReadonlyRGB): string =>
-  rgb.reduce((acc, c) => acc + (c > 15 ? "" : "0") + c.toString(16), "#");
-
 const qr = new QR($("qr-canvas"), getPassportUrl(currPassportId));
 
 // Set page positions & cover color
@@ -207,7 +200,7 @@ function toHtml(data: Passport) {
   if (currCountry !== country) {
     book.className = "";
     frontCover.country.textContent = idPage.country.textContent = country.name;
-    updateColor(country.color);
+    colorUpdater.set(country.color);
     currCountry = country;
   }
   setNodesContent(idPage, {
@@ -238,28 +231,13 @@ function toHtml(data: Passport) {
   );
 }
 
-let currColor = getComputedStyle(body)
-  .getPropertyValue("--p_color")
-  .match(/\d+/g)!
-  .map(Number) as RGB;
-function updateColor(target: ReadonlyRGB, frames = 60) {
-  cancelAnimationFrame(colorChanging);
-
-  const delta: RGB = [0, 0, 0];
-  for (let i = 0; i < 3; i++) delta[i] = (currColor[i] - target[i]) / frames;
-
-  const targetHEX = rgbToHex(target);
-
-  const changeColor = () => {
-    for (let i = 0; i < 3; i++) currColor[i] -= delta[i];
-    const currHEX = rgbToHex(currColor.map((num) => Math.round(num)) as RGB);
-    if (currHEX !== targetHEX)
-      colorChanging = requestAnimationFrame(changeColor);
-    setBodyVar("p_color", currHEX);
-    qr.setColor(currHEX);
-  };
-  colorChanging = requestAnimationFrame(changeColor);
-}
+const colorUpdater = new SmoothColorUpdater(
+  parseRGB(getComputedStyle(body).getPropertyValue("--p_color")),
+  (colorHEX) => {
+    setBodyVar("p_color", colorHEX);
+    qr.setColor(colorHEX);
+  },
+);
 
 function openBook() {
   bookTranslateX("50%");
