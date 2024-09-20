@@ -1,4 +1,5 @@
 import { SmoothColorUpdater } from "./color-updater";
+import { countries } from "./countries";
 import { parseRGB, setNodesContent } from "./lib";
 import { QR } from "./qr";
 import type { Passport, PassportStatusCode, Country } from "./types";
@@ -106,19 +107,6 @@ const frontCover = {
   country: $("country-name"),
 };
 
-const countries = (
-  [
-    ["gsld", [51, 34, 102], "Республика Гусляндия", "goose.svg"],
-    ["ngld", [85, 187, 51], "Республика Неогусляндия", "goose.svg"],
-    ["duck", [238, 136, 68], "Утиное Государство", "duck.png"],
-  ] as const
-).map(([code, color, name, stdImg]) => ({
-  code,
-  name,
-  color,
-  standardImage: "./standard-image/" + stdImg,
-}));
-
 const qr = new QR($("qr-canvas"), getPassportUrl(currPassportId));
 
 // Set page positions & cover color
@@ -128,8 +116,8 @@ for (let i = 0; i < spreads.length; i++)
 const [firstSpread, secondSpread] = spreads;
 const [lastSpread /*, preLastSpread*/] = spreads.toReversed();
 firstSpread.isCover =
-  firstSpread.isFirst =
   lastSpread.isCover =
+  firstSpread.isFirst =
   secondSpread.isFirst =
     true;
 
