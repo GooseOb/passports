@@ -388,14 +388,10 @@ book.addEventListener("click", (e) => {
   if (el.closest(".front")) pageController.next();
   else pageController.prev();
 });
-const onQrClick = (e: Event) => {
+qrContainer.addEventListener("click", (e) => {
   navigator.clipboard.writeText(location.href);
   e.preventDefault();
   e.stopPropagation();
-};
-qrContainer.addEventListener("click", onQrClick);
-qrContainer.addEventListener("keyup", (e) => {
-  if (e.code === "Enter" || e.code === "Space") onQrClick(e);
 });
 prevBtn.addEventListener("click", () => {
   pageController.prev();
