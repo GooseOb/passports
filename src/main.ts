@@ -1,5 +1,5 @@
 import { SmoothColorUpdater } from "./color-updater";
-import { parseRGB } from "./lib";
+import { parseRGB, setNodesContent } from "./lib";
 import { QR } from "./qr";
 import type { Passport, PassportStatusCode, Country } from "./types";
 import passportsPromise from "@passports";
@@ -102,16 +102,6 @@ const setBodyVar = (name: string, value: string) => {
   body.style.setProperty("--" + name, value);
 };
 
-const setNodesContent = <
-  TNodes extends Record<string, { textContent: any }>,
-  TKey extends keyof TNodes,
->(
-  nodes: TNodes,
-  obj: { [Key in TKey]: TNodes[Key]["textContent"] },
-) => {
-  for (const key in obj) nodes[key].textContent = obj[key];
-};
-
 const frontCover = {
   country: $("country-name"),
 };
@@ -145,7 +135,7 @@ firstSpread.isCover =
 
 const maxLoc = spreads.length + 1;
 
-function updatePassport() {
+const updatePassport = () => {
   const id = +idInput.value;
   if (id > 0 && id !== currPassportId) {
     currPassportId = id;
@@ -154,7 +144,7 @@ function updatePassport() {
     qr.setUrl(passportUrl);
     toHtml(passports[id - 1]);
   }
-}
+};
 
 window.addEventListener("popstate", ({ state }: { state: { id?: number } }) => {
   const id = state.id;
@@ -181,20 +171,19 @@ const div = (className: string) => {
   return el;
 };
 
-function toHtml(data: Passport) {
-  const [
-    name,
-    surname,
-    sex,
-    countryId,
-    nationality,
-    id,
-    dob,
-    doi,
-    photoUrl,
-    passportStatus,
-    marriages,
-  ] = data;
+const toHtml = ([
+  name,
+  surname,
+  sex,
+  countryId,
+  nationality,
+  id,
+  dob,
+  doi,
+  photoUrl,
+  passportStatus,
+  marriages,
+]: Passport) => {
   const country = countries[countryId];
   book.dataset.code = country.code;
   if (currCountry !== country) {
@@ -229,7 +218,7 @@ function toHtml(data: Passport) {
         })
       : []),
   );
-}
+};
 
 const colorUpdater = new SmoothColorUpdater(
   parseRGB(getComputedStyle(body).getPropertyValue("--p_color")),
@@ -239,14 +228,14 @@ const colorUpdater = new SmoothColorUpdater(
   },
 );
 
-function openBook() {
+const openBook = () => {
   bookTranslateX("50%");
   transformBtns(180);
   prevBtn.style.visibility = nextBtn.style.visibility = "visible";
   prevBtn.style.opacity = nextBtn.style.opacity = "100";
-}
+};
 
-function closeBook() {
+const closeBook = () => {
   let btn: HTMLButtonElement;
   if (currLoc === 2) {
     bookTranslateX("0");
@@ -260,7 +249,7 @@ function closeBook() {
     if (btn.style.opacity === "0") btn.style.visibility = "hidden";
   }, 250);
   transformBtns(0);
-}
+};
 
 type IndexGetter = () => number;
 type BookHandlers = readonly [() => void, () => void];
@@ -343,7 +332,7 @@ const pageController: PageController = {
 };
 if (initialPage) pageController.goTo(getLocByPage(+initialPage));
 
-function rotateBook() {
+const rotateBook = () => {
   const isMaxLoc = currLoc === maxLoc;
   const isMinLoc = currLoc === 1;
   const isRotated = ~book.style.transform.indexOf("rotate");
@@ -354,7 +343,7 @@ function rotateBook() {
   }
   book.style.transform = `rotate(90deg) translateX(${isMaxLoc ? 120 : 20}%)`;
   transformBtns(80);
-}
+};
 if (initialRotated)
   setTimeout(() => {
     rotateBook();
@@ -379,20 +368,18 @@ nextBtn.addEventListener("click", () => {
 });
 rotateBtn.addEventListener("click", rotateBook);
 idBtn.addEventListener("click", updatePassport);
-const keyEvents = {
-  ArrowRight() {
-    pageController.next();
-  },
-  ArrowLeft() {
-    pageController.prev();
-  },
-};
 document.addEventListener("keydown", ({ key }) => {
   if (getSelection()!.anchorNode === idForm) return;
   if (+key) {
     idInput.select();
   } else {
-    keyEvents[key as keyof typeof keyEvents]?.();
+    switch (key) {
+      case "ArrowRight":
+        pageController.next();
+        break;
+      case "ArrowLeft":
+        pageController.prev();
+    }
   }
 });
 idInput.addEventListener("keydown", (e) => {
@@ -400,5 +387,7 @@ idInput.addEventListener("keydown", (e) => {
 });
 idInput.addEventListener("input", function () {
   this.value =
-    +this.value > +this.max ? this.max : this.value.replace(/^[-0]+/g, "");
+    +this.value > passports.length
+      ? this.max
+      : this.value.replace(/^[-0]+/g, "");
 });
