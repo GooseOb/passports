@@ -62,15 +62,15 @@ const marriageList = $<HTMLDivElement>("marriages");
 const qrContainer = $<HTMLDivElement>("qr");
 
 const stampStatuses = {
-  "-1": ["null", "Аннулировано"],
-  "0": ["no", ""],
-  "1": ["normal", $("osis").outerHTML],
+  "-1": ["null", document.createTextNode("Аннулировано")],
+  "0": ["no", document.createTextNode("")],
+  "1": ["normal", $("osis").cloneNode(true)],
 } satisfies Record<
   PassportStatusCode,
-  readonly [HTMLElement["className"], HTMLElement["innerHTML"]]
+  readonly [HTMLElement["className"], Node]
 >;
 
-const mainPage = {
+const idPage = {
   name: $("u_name"),
   flagCont: $("u_flag-container"),
   flag: $("u_flag"),
@@ -90,8 +90,9 @@ const mainPage = {
   stamp: {
     element: $("u_stamp"),
     set textContent(value: PassportStatusCode) {
-      const [className, innerHTML] = stampStatuses[value] || stampStatuses[0];
-      Object.assign(this.element, { className, innerHTML });
+      const [className, contentNode] = stampStatuses[value] || stampStatuses[0];
+      this.element.className = className;
+      this.element.replaceChildren(contentNode);
     },
   },
 };
@@ -191,7 +192,7 @@ window.addEventListener("popstate", ({ state }: { state: { id?: number } }) => {
     location.reload();
   }
 });
-mainPage.photo.element.addEventListener("error", function () {
+idPage.photo.element.addEventListener("error", function () {
   this.src = currCountry.standardImage;
 });
 
@@ -217,9 +218,9 @@ function toHtml(data: Passport) {
     updateColor(country.color);
     currCountry = country;
 
-    mainPage.country.textContent = country.name;
+    idPage.country.textContent = country.name;
   }
-  setNodesContent(mainPage, {
+  setNodesContent(idPage, {
     name,
     surname,
     dob,
