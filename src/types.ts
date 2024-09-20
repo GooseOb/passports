@@ -1,4 +1,8 @@
-type Marriage = readonly [date: string, name: string, divorceDate?: string | 0];
+export type Marriage = readonly [
+  date: string,
+  name: string,
+  divorceDate?: string | 0,
+];
 
 export type PassportStatusCode = -1 | 0 | 1;
 export type Passport = readonly [

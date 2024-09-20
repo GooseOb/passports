@@ -1,6 +1,7 @@
 import { SmoothColorUpdater } from "./color-updater";
 import { countries } from "./countries";
 import { parseRGB, setNodesContent } from "./lib";
+import { createMarriageCard } from "./marriage-card";
 import { QR } from "./qr";
 import type { Passport, PassportStatusCode, Country } from "./types";
 import passportsPromise from "@passports";
@@ -148,17 +149,6 @@ idPage.photo.element.addEventListener("error", function () {
   this.src = currCountry.standardImage;
 });
 
-const span = (text: string) => {
-  const el = document.createElement("span");
-  el.textContent = text;
-  return el;
-};
-const div = (className: string) => {
-  const el = document.createElement("div");
-  el.className = className;
-  return el;
-};
-
 const toHtml = ([
   name,
   surname,
@@ -193,18 +183,7 @@ const toHtml = ([
   });
 
   marriageList.replaceChildren(
-    ...(marriages
-      ? marriages.map(([date, name, divorceDate = false]) => {
-          const card = div("card");
-          const dataEl = card.appendChild(div("data"));
-          dataEl.appendChild(span(name));
-          dataEl.appendChild(span(date)).className = "date";
-          const divorceEl = card.appendChild(div("divorce"));
-          divorceEl.textContent = "Расторгнут " + divorceDate;
-          if (!divorceDate) divorceEl.style.visibility = "hidden";
-          return card;
-        })
-      : []),
+    ...(marriages ? marriages.map(createMarriageCard) : []),
   );
 };
 
