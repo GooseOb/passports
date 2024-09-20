@@ -123,6 +123,7 @@ firstSpread.isCover =
     true;
 
 const maxLoc = spreads.length + 1;
+const minLoc = 1;
 
 const updatePassport = () => {
   const id = +idInput.value;
@@ -199,6 +200,9 @@ const colorUpdater = new SmoothColorUpdater(
 // OPEN = "50%";
 // CLOSED_BACK = "100%";
 
+const FLIP_TIME = 250;
+const afterFlip = (cb: () => void) => setTimeout(cb, FLIP_TIME);
+
 const openBook = () => {
   bookTranslateX("50%");
   transformBtns("180");
@@ -206,19 +210,21 @@ const openBook = () => {
   prevBtn.style.opacity = nextBtn.style.opacity = "100";
 };
 
-const closeBook = () => {
-  const [btnToHide, x] = currLoc === 2 ? [prevBtn, "0"] : [nextBtn, "100%"];
+const closeBook = (isFront: boolean) => {
+  const [btnToHide, x] = isFront ? [prevBtn, "0"] : [nextBtn, "100%"];
   bookTranslateX(x);
   btnToHide.style.opacity = "0";
-  setTimeout(() => {
-    if (btnToHide.style.opacity === "0") btnToHide.style.visibility = "hidden";
-  }, 250);
+  afterFlip(() => {
+    if (btnToHide.style.opacity === "0") {
+      btnToHide.style.visibility = "hidden";
+    }
+  });
   transformBtns("0");
 };
 
 const rotateBook = () => {
   const isMaxLoc = currLoc === maxLoc;
-  const isMinLoc = currLoc === 1;
+  const isMinLoc = currLoc === minLoc;
   const isRotated = book.style.transform.includes("rotate");
   if (isRotated) {
     bookTranslateX(isMinLoc ? "0" : isMaxLoc ? "100%" : "50%");
@@ -228,88 +234,62 @@ const rotateBook = () => {
     transformBtns("80");
   }
 };
-if (initialRotated)
-  setTimeout(() => {
-    rotateBook();
-  }, 250);
-
-type IndexGetter = () => number;
-type BookHandlers = readonly [() => void, () => void];
-type PageControllerParams = {
-  readonly getIndex: IndexGetter;
-  readonly bookHandlers: BookHandlers;
-};
-type PageController = {
-  readonly next: () => void;
-  readonly prev: () => void;
-  readonly goTo: (loc: number) => void;
-  _isFlipping: boolean;
-  readonly _nextParams: PageControllerParams;
-  readonly _prevParams: PageControllerParams;
-  readonly _flip: (
-    isNext: boolean,
-    obj: {
-      getIndex: IndexGetter;
-      bookHandlers: BookHandlers;
-    },
-  ) => boolean;
-};
-
-let spreadI: number;
-const FLIP_TIME = 250;
+if (initialRotated) afterFlip(rotateBook);
 
 const getLocByPage = (page: number): number =>
   page < 1 ? 1 : page > 6 ? maxLoc : Math.floor(page / 2) + 2;
 
-const pageController: PageController = {
+const pageController = {
   next() {
-    if (currLoc === maxLoc) return;
-    if (this._flip(true, this._nextParams)) ++currLoc;
+    if (this._isFlipping || currLoc === maxLoc) return;
+    this._isFlipping = true;
+    const setSpreadZIndex = this._getSpreadZIndexSetter(currLoc - 1);
+    const oldLoc = currLoc;
+    ++currLoc;
+    if (oldLoc === minLoc) {
+      openBook();
+    } else if (currLoc === maxLoc) {
+      closeBook(false);
+    }
+    afterFlip(() => {
+      setSpreadZIndex(currLoc - spreads.length);
+      this._isFlipping = false;
+    });
   },
   prev() {
-    if (currLoc === 1) return;
-    if (this._flip(false, this._prevParams)) --currLoc;
+    if (this._isFlipping || currLoc === minLoc) return;
+    this._isFlipping = true;
+    this._getSpreadZIndexSetter(currLoc - 2)(spreads.length - currLoc + 2);
+    const oldLoc = currLoc;
+    --currLoc;
+    if (oldLoc === maxLoc) {
+      openBook();
+    } else if (currLoc === minLoc) {
+      closeBook(true);
+    }
+    afterFlip(() => {
+      this._isFlipping = false;
+    });
   },
-  goTo(loc) {
+  goTo(loc: number) {
     if (loc === currLoc) return;
-    const isNext = loc > currLoc;
-    const params = isNext ? this._nextParams : this._prevParams;
-    const mod = isNext ? 1 : -1;
+    const go = (loc > currLoc ? this.next : this.prev).bind(this);
     const interval = setInterval(() => {
-      if (this._flip(isNext, params)) {
-        currLoc += mod;
-        if (currLoc === loc) clearInterval(interval);
+      go();
+      if (loc === currLoc) {
+        clearInterval(interval);
       }
     }, FLIP_TIME);
   },
   _isFlipping: false,
-  _nextParams: {
-    getIndex: () => currLoc - spreads.length,
-    bookHandlers: [openBook, closeBook],
-  },
-  _prevParams: {
-    getIndex: () => spreads.length - spreadI,
-    bookHandlers: [closeBook, openBook],
-  },
-  _flip(isNext: boolean, { bookHandlers, getIndex }) {
-    if (this._isFlipping) return false;
-    this._isFlipping = true;
-
-    const nextMod = +isNext;
-    spreadI = currLoc + nextMod - 2;
+  _getSpreadZIndexSetter(spreadI: number) {
     const spread = spreads[spreadI];
-    const { isCover, isFirst } = spread;
     spread.classList.toggle("flipped");
-    if (isCover) bookHandlers[isFirst ? 0 : 1]();
-    setTimeout(() => {
+    return (value: number) => {
       spread.style.zIndex = spread.querySelector<HTMLDivElement>(
         ".front",
-      )!.style.zIndex = getIndex().toString();
-    }, nextMod * 250);
-    setTimeout(() => {
-      this._isFlipping = false;
-    }, FLIP_TIME);
-    return true;
+      )!.style.zIndex = value.toString();
+    };
   },
 };
 if (initialPage) pageController.goTo(getLocByPage(+initialPage));
