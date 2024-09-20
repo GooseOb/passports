@@ -58,7 +58,7 @@ const idBtn = $<HTMLButtonElement>("id-btn");
 const idForm = $<HTMLFormElement>("id-form");
 const idInput = $<HTMLInputElement>("id-input");
 const book = $<HTMLDivElement>("book");
-const pageF4 = $<HTMLDivElement>("marriages");
+const marriageList = $<HTMLDivElement>("marriages");
 const qrContainer = $<HTMLDivElement>("qr");
 
 const stampStatuses = {
@@ -230,21 +230,30 @@ function toHtml(data: Passport) {
     stamp: passportStatus,
     photo: photoUrl || country.standardImage,
   });
-  pageF4.innerHTML = "";
-  if (!marriages) return;
-  for (const [date, name, divorceDate = false] of marriages) {
-    const divorce = divorceDate
-      ? `<div class='divorce'> Расторгнут ${divorceDate} </div>`
-      : "";
-    pageF4.innerHTML += `
-		<div class='card'>
-			<div class='data'>
-				<span>${name}</span>
-				<span class='date'>${date}</span>
-			</div>
-			${divorce}
-		</div>`;
-  }
+  marriageList.replaceChildren(
+    ...(marriages
+      ? marriages.map(([date, name, divorceDate = false]) => {
+          const nameEl = document.createElement("span");
+          nameEl.textContent = name;
+          const dateEl = document.createElement("span");
+          dateEl.className = "date";
+          dateEl.textContent = date;
+          const dataEl = document.createElement("div");
+          dataEl.appendChild(nameEl);
+          dataEl.appendChild(dateEl);
+          dataEl.className = "data";
+          const divorceEl = document.createElement("div");
+          divorceEl.className = "divorce";
+          divorceEl.textContent = "Расторгнут " + divorceDate;
+          if (!divorceDate) divorceEl.style.visibility = "hidden";
+          const card = document.createElement("div");
+          card.className = "card";
+          card.appendChild(dataEl);
+          card.appendChild(divorceEl);
+          return card;
+        })
+      : []),
+  );
 }
 
 let currColor = getComputedStyle(body)
