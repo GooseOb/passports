@@ -117,7 +117,7 @@ const setNodesContent = <
 };
 
 const frontCover = {
-  countryName: $("country-name"),
+  country: $("country-name"),
 };
 
 const countries = (
@@ -177,6 +177,17 @@ idPage.photo.element.addEventListener("error", function () {
   this.src = currCountry.standardImage;
 });
 
+const span = (text: string) => {
+  const el = document.createElement("span");
+  el.textContent = text;
+  return el;
+};
+const div = (className: string) => {
+  const el = document.createElement("div");
+  el.className = className;
+  return el;
+};
+
 function toHtml(data: Passport) {
   const [
     name,
@@ -195,11 +206,9 @@ function toHtml(data: Passport) {
   book.dataset.code = country.code;
   if (currCountry !== country) {
     book.className = "";
-    frontCover.countryName.textContent = country.name;
+    frontCover.country.textContent = idPage.country.textContent = country.name;
     updateColor(country.color);
     currCountry = country;
-
-    idPage.country.textContent = country.name;
   }
   setNodesContent(idPage, {
     name,
@@ -212,26 +221,17 @@ function toHtml(data: Passport) {
     stamp: passportStatus,
     photo: photoUrl || country.standardImage,
   });
+
   marriageList.replaceChildren(
     ...(marriages
       ? marriages.map(([date, name, divorceDate = false]) => {
-          const nameEl = document.createElement("span");
-          nameEl.textContent = name;
-          const dateEl = document.createElement("span");
-          dateEl.className = "date";
-          dateEl.textContent = date;
-          const dataEl = document.createElement("div");
-          dataEl.appendChild(nameEl);
-          dataEl.appendChild(dateEl);
-          dataEl.className = "data";
-          const divorceEl = document.createElement("div");
-          divorceEl.className = "divorce";
+          const card = div("card");
+          const dataEl = card.appendChild(div("data"));
+          dataEl.appendChild(span(name));
+          dataEl.appendChild(span(date)).className = "date";
+          const divorceEl = card.appendChild(div("divorce"));
           divorceEl.textContent = "Расторгнут " + divorceDate;
           if (!divorceDate) divorceEl.style.visibility = "hidden";
-          const card = document.createElement("div");
-          card.className = "card";
-          card.appendChild(dataEl);
-          card.appendChild(divorceEl);
           return card;
         })
       : []),
