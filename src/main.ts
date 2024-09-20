@@ -1,4 +1,4 @@
-import QRCode, { type QRCodeRenderersOptions } from "qrcode";
+import { QR } from "./qr";
 import type {
   Passport,
   PassportStatusCode,
@@ -89,10 +89,15 @@ const idPage = {
   nationality: $("u_nationality"),
   stamp: {
     element: $("u_stamp"),
+    _value: Infinity as PassportStatusCode,
     set textContent(value: PassportStatusCode) {
-      const [className, contentNode] = stampStatuses[value] || stampStatuses[0];
-      this.element.className = className;
-      this.element.replaceChildren(contentNode);
+      if (this._value !== value) {
+        const [className, contentNode] =
+          stampStatuses[value] || stampStatuses[0];
+        this.element.className = className;
+        this.element.replaceChildren(contentNode);
+        this._value = value;
+      }
     },
   },
 };
@@ -131,31 +136,7 @@ const countries = (
 const rgbToHex = (rgb: ReadonlyRGB): string =>
   rgb.reduce((acc, c) => acc + (c > 15 ? "" : "0") + c.toString(16), "#");
 
-const qr = {
-  updateUrl(url: string) {
-    this._url = url;
-    return this._render();
-  },
-  updateColor(color: string) {
-    this._options.color.dark = color;
-    return this._render();
-  },
-  _render() {
-    return QRCode.toCanvas(this._canvas, this._url, this._options);
-  },
-  _url: getPassportUrl(currPassportId),
-  _options: {
-    color: {
-      dark: "#888",
-      light: "#0000",
-    },
-    width: 256,
-    margin: 0,
-    errorCorrectionLevel: "L",
-  } satisfies QRCodeRenderersOptions,
-  _canvas: $<HTMLCanvasElement>("qr-canvas"),
-};
-qr._render();
+const qr = new QR($("qr-canvas"), getPassportUrl(currPassportId));
 
 // Set page positions & cover color
 for (let i = 0; i < spreads.length; i++)
@@ -177,7 +158,7 @@ function updatePassport() {
     currPassportId = id;
     const passportUrl = getPassportUrl(id);
     history.pushState({ id }, "", passportUrl);
-    qr.updateUrl(passportUrl);
+    qr.setUrl(passportUrl);
     toHtml(passports[id - 1]);
   }
 }
@@ -275,7 +256,7 @@ function updateColor(target: ReadonlyRGB, frames = 60) {
     if (currHEX !== targetHEX)
       colorChanging = requestAnimationFrame(changeColor);
     setBodyVar("p_color", currHEX);
-    qr.updateColor(currHEX);
+    qr.setColor(currHEX);
   };
   colorChanging = requestAnimationFrame(changeColor);
 }
