@@ -32,7 +32,7 @@ const getPassportUrl = (id: string | number | null): string =>
   BASE_URL + (id ? "?id=" + id : "");
 
 const $ = <T = HTMLElement>(id: string) => document.getElementById(id) as T;
-const transformBtns = (num: string | number) => {
+const transformBtns = (num: string) => {
   prevBtn.style.transform = `translateX(-${num}px)`;
   nextBtn.style.transform = `translateX(${num}px)`;
 };
@@ -195,28 +195,43 @@ const colorUpdater = new SmoothColorUpdater(
   },
 );
 
+// CLOSED_FRONT = "0";
+// OPEN = "50%";
+// CLOSED_BACK = "100%";
+
 const openBook = () => {
   bookTranslateX("50%");
-  transformBtns(180);
+  transformBtns("180");
   prevBtn.style.visibility = nextBtn.style.visibility = "visible";
   prevBtn.style.opacity = nextBtn.style.opacity = "100";
 };
 
 const closeBook = () => {
-  let btn: HTMLButtonElement;
-  if (currLoc === 2) {
-    bookTranslateX("0");
-    btn = prevBtn;
-  } else {
-    bookTranslateX("100%");
-    btn = nextBtn;
-  }
-  btn.style.opacity = "0";
+  const [btnToHide, x] = currLoc === 2 ? [prevBtn, "0"] : [nextBtn, "100%"];
+  bookTranslateX(x);
+  btnToHide.style.opacity = "0";
   setTimeout(() => {
-    if (btn.style.opacity === "0") btn.style.visibility = "hidden";
+    if (btnToHide.style.opacity === "0") btnToHide.style.visibility = "hidden";
   }, 250);
-  transformBtns(0);
+  transformBtns("0");
 };
+
+const rotateBook = () => {
+  const isMaxLoc = currLoc === maxLoc;
+  const isMinLoc = currLoc === 1;
+  const isRotated = book.style.transform.includes("rotate");
+  if (isRotated) {
+    bookTranslateX(isMinLoc ? "0" : isMaxLoc ? "100%" : "50%");
+    transformBtns(isMinLoc || isMaxLoc ? "0" : "180");
+  } else {
+    book.style.transform = `rotate(90deg) translateX(${isMaxLoc ? "120" : "20"}%)`;
+    transformBtns("80");
+  }
+};
+if (initialRotated)
+  setTimeout(() => {
+    rotateBook();
+  }, 250);
 
 type IndexGetter = () => number;
 type BookHandlers = readonly [() => void, () => void];
@@ -298,23 +313,6 @@ const pageController: PageController = {
   },
 };
 if (initialPage) pageController.goTo(getLocByPage(+initialPage));
-
-const rotateBook = () => {
-  const isMaxLoc = currLoc === maxLoc;
-  const isMinLoc = currLoc === 1;
-  const isRotated = ~book.style.transform.indexOf("rotate");
-  if (isRotated) {
-    bookTranslateX((isMinLoc ? 0 : isMaxLoc ? 100 : 50) + "%");
-    transformBtns(isMinLoc || isMaxLoc ? 0 : 180);
-    return;
-  }
-  book.style.transform = `rotate(90deg) translateX(${isMaxLoc ? 120 : 20}%)`;
-  transformBtns(80);
-};
-if (initialRotated)
-  setTimeout(() => {
-    rotateBook();
-  }, 250);
 
 // Listeners
 book.addEventListener("click", (e) => {
