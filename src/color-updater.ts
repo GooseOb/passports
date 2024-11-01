@@ -1,4 +1,4 @@
-import { RGB, ReadonlyRGB } from "./types";
+import type { RGB, ReadonlyRGB } from "./types";
 
 const rgbToHex = (rgb: ReadonlyRGB): string =>
   rgb.reduce((acc, c) => acc + (c > 15 ? "" : "0") + c.toString(16), "#");
